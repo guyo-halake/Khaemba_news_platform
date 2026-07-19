@@ -5,9 +5,12 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
 
 export async function updateSession(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', request.nextUrl.pathname)
+
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   })
 
@@ -20,7 +23,7 @@ export async function updateSession(request: NextRequest) {
         request.cookies.set({ name, value, ...options })
         response = NextResponse.next({
           request: {
-            headers: request.headers,
+            headers: requestHeaders,
           },
         })
         response.cookies.set({ name, value, ...options })
@@ -29,7 +32,7 @@ export async function updateSession(request: NextRequest) {
         request.cookies.set({ name, value: '', ...options, maxAge: -1 })
         response = NextResponse.next({
           request: {
-            headers: request.headers,
+            headers: requestHeaders,
           },
         })
         response.cookies.set({ name, value: '', ...options, maxAge: -1 })

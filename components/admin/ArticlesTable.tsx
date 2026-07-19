@@ -24,7 +24,7 @@ export default function ArticlesTable({ initialArticles, categories, tenantId }:
 
     try {
       if (isMockEnabled()) {
-        deleteArticle(id)
+        await deleteArticle(id)
         setArticles(articles.filter(a => a.id !== id))
         return
       }
@@ -45,12 +45,12 @@ export default function ArticlesTable({ initialArticles, categories, tenantId }:
     }
   }
 
-  const handleStatusToggle = async (id: string, currentStatus: 'draft' | 'published') => {
+  const handleStatusToggle = async (id: string, currentStatus: Article['status']) => {
     const nextStatus = currentStatus === 'published' ? 'draft' : 'published'
     
     try {
       if (isMockEnabled()) {
-        updateArticleStatus(id, nextStatus)
+        await updateArticleStatus(id, nextStatus)
         setArticles(articles.map(a => (a.id === id ? { ...a, status: nextStatus } : a)))
         return
       }

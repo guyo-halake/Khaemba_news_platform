@@ -25,7 +25,7 @@ export default function ArticleForm({ article, categories, tenantId, authorId }:
   const [excerpt, setExcerpt] = useState(article?.excerpt || '')
   const [categoryId, setCategoryId] = useState(article?.category_id || categories[0]?.id || '')
   const [featuredImageUrl, setFeaturedImageUrl] = useState(article?.featured_image_url || '')
-  const [status, setStatus] = useState<'draft' | 'published'>(article?.status || 'draft')
+  const [status, setStatus] = useState<Article['status']>(article?.status || 'draft')
   const [tagsInput, setTagsInput] = useState(article?.tags?.join(', ') || '')
   const [blocks, setBlocks] = useState<ArticleBlock[]>(article?.body || [])
 
@@ -70,9 +70,9 @@ export default function ArticleForm({ article, categories, tenantId, authorId }:
     try {
       if (isMockEnabled()) {
         if (isEditing && article) {
-          updateArticle(article.id, payload)
+          await updateArticle(article.id, payload)
         } else {
-          createArticle({
+          await createArticle({
             ...payload,
             author_id: 'mock-staff',
             view_count: 0

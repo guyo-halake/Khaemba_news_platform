@@ -19,6 +19,7 @@ export default function Header() {
   const [tickerItems, setTickerItems] = useState<string[]>([])
   const [userSession, setUserSession] = useState<any>(null)
   const [cardStyle, setCardStyle] = useState<'minimalist' | 'bold' | 'editorial'>('editorial')
+  const [layoutTheme, setLayoutTheme] = useState<'editorial' | 'magazine'>('editorial')
   const [siteName, setSiteName] = useState('KHAEMBA NEWS')
   const [siteTagline, setSiteTagline] = useState('The Voice of Devolution & Authoritative County Journalism')
   const [siteCategories, setSiteCategories] = useState<Category[]>([])
@@ -27,6 +28,11 @@ export default function Header() {
     const savedCardStyle = localStorage.getItem('cardStyle')
     if (savedCardStyle === 'minimalist' || savedCardStyle === 'bold' || savedCardStyle === 'editorial') {
       setCardStyle(savedCardStyle)
+    }
+
+    const savedLayout = localStorage.getItem('layoutTheme')
+    if (savedLayout === 'editorial' || savedLayout === 'magazine') {
+      setLayoutTheme(savedLayout)
     }
 
     // Format Date
@@ -151,6 +157,13 @@ export default function Header() {
     window.location.reload()
   }
 
+  const toggleLayoutTheme = () => {
+    const nextLayout = layoutTheme === 'editorial' ? 'magazine' : 'editorial'
+    setLayoutTheme(nextLayout)
+    localStorage.setItem('layoutTheme', nextLayout)
+    window.location.reload()
+  }
+
   return (
     <header className="w-full bg-paper-warm dark:bg-paper-dark border-b border-ink-navy/10 dark:border-gray-800 z-50">
       {/* 1. TOP UTILITY BAR */}
@@ -180,13 +193,20 @@ export default function Header() {
             <span>{userSession ? 'ADMIN' : 'STAFF LOGIN'}</span>
           </Link>
           <span className="text-white/20">|</span>
-          <button
+           <button
             onClick={cycleCardStyle}
             className="flex items-center space-x-1 px-2 py-1 rounded font-semibold transition-all bg-white/10 text-white/90 hover:bg-white/15"
             title={`Card style: ${cardStyle}`}
           >
             <Layers3 className="w-3.5 h-3.5" />
             <span className="font-mono font-bold">{cardStyle.slice(0, 3).toUpperCase()}</span>
+          </button>
+          <button
+            onClick={toggleLayoutTheme}
+            className="flex items-center space-x-1 px-2 py-1 rounded font-semibold transition-all bg-amber text-ink-navy hover:bg-amber-hover"
+            title={`Layout style: ${layoutTheme}`}
+          >
+            <span className="font-mono font-bold text-[10px]">{layoutTheme === 'editorial' ? 'EDITORIAL' : 'MAGAZINE'}</span>
           </button>
           <button
             onClick={toggleDemoMode}
@@ -304,7 +324,7 @@ export default function Header() {
             <>
               <Link href="/category/politics" className="hover:text-category-politics transition-colors tracking-wider">POLITICS</Link>
               <Link href="/category/business" className="hover:text-category-business transition-colors tracking-wider">BUSINESS</Link>
-              <Link href="/category/county" className="hover:text-category-county transition-colors tracking-wider">COUNTY</Link>
+              <Link href="/category/national" className="hover:text-category-county transition-colors tracking-wider">NATIONAL</Link>
               <Link href="/category/sports" className="hover:text-category-sports transition-colors tracking-wider">SPORTS</Link>
             </>
           )}
@@ -336,21 +356,25 @@ export default function Header() {
 
       {/* MOBILE NAVIGATION OVERLAY */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-paper-warm dark:bg-paper-dark z-40 pt-20 px-6 flex flex-col space-y-6">
-          <div className="flex flex-col space-y-4 font-mono text-sm border-b border-ink-navy/10 dark:border-gray-800 pb-6">
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:text-amber">HOME</Link>
-            <Link href="/category/politics" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-politics">POLITICS</Link>
-            <Link href="/category/business" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-business">BUSINESS</Link>
-            <Link href="/category/county" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-county">COUNTY</Link>
-            <Link href="/category/sports" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-sports">SPORTS</Link>
-            <Link href="/documentaries" onClick={() => setMobileMenuOpen(false)} className="hover:text-amber text-amber font-bold">DOCUMENTARIES</Link>
-            <Link href="/category/opinion" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-opinion">OPINION</Link>
-            <Link href="/admin/login" onClick={() => setMobileMenuOpen(false)} className="hover:text-amber font-bold">STAFF LOGIN</Link>
+        <div className="md:hidden fixed inset-0 bg-paper-warm dark:bg-paper-dark z-[60] pt-4 px-6 flex flex-col overflow-y-auto">
+          <div className="flex justify-between items-center pb-4 border-b border-ink-navy/10 dark:border-gray-800">
+            <span className="font-headline font-black text-xl text-ink-navy dark:text-paper-warm">Menu</span>
+            <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-ink-navy dark:text-paper-warm">
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <div className="flex flex-col space-y-4">
-            <Link href="/advertise" onClick={() => setMobileMenuOpen(false)} className="bg-amber text-ink-navy font-bold text-center py-2.5 rounded">
-              ADVERTISE WITH US
-            </Link>
+          <div className="flex flex-col space-y-4 font-mono text-sm pt-6 pb-6">
+            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:text-amber py-1">HOME</Link>
+            <Link href="/category/politics" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-politics py-1">POLITICS</Link>
+            <Link href="/category/business" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-business py-1">BUSINESS</Link>
+            <Link href="/category/national" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-county py-1">NATIONAL</Link>
+            <Link href="/category/sports" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-sports py-1">SPORTS</Link>
+            <Link href="/documentaries" onClick={() => setMobileMenuOpen(false)} className="hover:text-amber text-amber font-bold py-1">DOCUMENTARIES</Link>
+            <Link href="/category/opinion" onClick={() => setMobileMenuOpen(false)} className="hover:text-category-opinion py-1">OPINION</Link>
+          </div>
+          <div className="flex flex-col space-y-3 border-t border-ink-navy/10 dark:border-gray-800 pt-6">
+            <Link href="/admin/login" onClick={() => setMobileMenuOpen(false)} className="bg-ink-navy dark:bg-white text-white dark:text-ink-navy font-bold text-center py-2.5 rounded text-sm">STAFF LOGIN</Link>
+            <Link href="/advertise" onClick={() => setMobileMenuOpen(false)} className="bg-amber text-ink-navy font-bold text-center py-2.5 rounded text-sm">ADVERTISE WITH US</Link>
           </div>
         </div>
       )}

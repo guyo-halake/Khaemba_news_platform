@@ -68,21 +68,33 @@ create table public.videos (
   slug text not null,
   description text not null,
   thumbnail_url text not null,
-  video_source_type text not null check (video_source_type in ('youtube', 'vimeo', 'uploaded')) default 'youtube',
+  video_source_type text not null check (video_source_type in ('youtube', 'vimeo', 'uploaded', 'cloudflare_stream')) default 'youtube',
   video_url text not null,
   duration_seconds int default 0 not null,
   category_id uuid references public.categories(id) on delete set null,
   status text not null check (status in ('draft', 'published')) default 'draft',
   published_at timestamptz,
   view_count int default 0 not null,
+  series text,
   created_at timestamptz default timezone('utc'::text, now()) not null,
   unique(tenant_id, slug)
+);
+
+-- Ad Clients table
+create table public.ad_clients (
+  id uuid default gen_random_uuid() primary key,
+  tenant_id uuid references public.tenants(id) on delete cascade not null,
+  name text not null,
+  email text,
+  phone text,
+  created_at timestamptz default timezone('utc'::text, now()) not null
 );
 
 -- Ads table
 create table public.ads (
   id uuid default gen_random_uuid() primary key,
   tenant_id uuid references public.tenants(id) on delete cascade not null,
+  client_id uuid references public.ad_clients(id) on delete set null,
   client_name text not null,
   image_url text not null,
   target_link text not null,
@@ -356,5 +368,78 @@ create policy "Allow public insert traffic events" on public.site_analytics
 create policy "Allow Admin view traffic events" on public.site_analytics
   for select using (
     public.current_user_role() = 'admin' 
+    and tenant_id = public.current_user_tenant_id()
+  );
+
+-- Ad Payments table
+create table public.ad_payments (
+  id uuid default gen_random_uuid() primary key,
+  tenant_id uuid references public.tenants(id) on delete cascade not null,
+  client_id uuid references public.ad_clients(id) on delete cascade not null,
+  ad_id uuid references public.ads(id) on delete set null,
+  amount numeric(12, 2) not null,
+  payment_date date not null,
+  payment_method text not null check (payment_method in ('M-Pesa', 'Bank Transfer', 'Card', 'Cash')),
+  status text not null check (status in ('pending', 'completed', 'refunded')) default 'pending',
+  created_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS
+alter table public.ad_clients enable row level security;
+alter table public.ad_payments enable row level security;
+
+-- Policies
+create policy "Allow Admin manage ad_clients" on public.ad_clients
+  for all using (
+    public.current_user_role() = 'admin' 
+    and tenant_id = public.current_user_tenant_id()
+  );
+
+create policy "Allow Admin manage ad_payments" on public.ad_payments
+  for all using (
+    public.current_user_role() = 'admin' 
+    and tenant_id = public.current_user_tenant_id()
+  );
+
+-- Newsletter Sent Dispatches table
+create table public.newsletter_sent (
+  id uuid default gen_random_uuid() primary key,
+  tenant_id uuid references public.tenants(id) on delete cascade not null,
+  subject text not null,
+  content text not null,
+  recipients_count int not null default 0,
+  sent_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+alter table public.newsletter_sent enable row level security;
+
+create policy "Allow Admin manage newsletter_sent" on public.newsletter_sent
+  for all using (
+    public.current_user_role() = 'admin' 
+    and tenant_id = public.current_user_tenant_id()
+  );
+
+-- Inquiries table
+create table public.inquiries (
+  id uuid default gen_random_uuid() primary key,
+  tenant_id uuid references public.tenants(id) on delete cascade not null,
+  name text not null,
+  email text not null,
+  subject text not null,
+  message text not null,
+  type text not null check (type in ('contact', 'advertise')) default 'contact',
+  status text not null check (status in ('unread', 'read', 'replied')) default 'unread',
+  created_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+alter table public.inquiries enable row level security;
+
+-- Policies
+create policy "Allow public insert inquiries" on public.inquiries
+  for insert with check (true);
+
+create policy "Allow Admin/Editor manage inquiries" on public.inquiries
+  for all using (
+    public.current_user_role() in ('admin', 'editor') 
     and tenant_id = public.current_user_tenant_id()
   );

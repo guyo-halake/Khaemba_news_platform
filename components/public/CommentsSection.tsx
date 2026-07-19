@@ -62,7 +62,7 @@ export default function CommentsSection({ articleId }: CommentsSectionProps) {
     setSubmitting(true)
     try {
       if (isMockEnabled()) {
-        addComment({ article_id: articleId, author_name: name, body })
+        addComment(articleId, name, body)
         setSuccess(true)
         setName('')
         setBody('')

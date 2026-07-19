@@ -69,7 +69,7 @@ export interface Video {
   status: VideoStatus;
   published_at?: string;
   view_count: number;
-  series?: string;
+  series?: string | null;
   created_at: string;
 }
 

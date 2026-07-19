@@ -18,7 +18,7 @@ export default function CommentsModerator({ initialComments, tenantId }: Comment
   const handleStatusChange = async (id: string, status: 'approved' | 'rejected') => {
     try {
       if (isMockEnabled()) {
-        updateCommentStatus(id, status)
+        await updateCommentStatus(id, status)
         setComments(comments.map(c => (c.id === id ? { ...c, status } : c)))
         return
       }
@@ -44,7 +44,7 @@ export default function CommentsModerator({ initialComments, tenantId }: Comment
 
     try {
       if (isMockEnabled()) {
-        deleteComment(id)
+        await deleteComment(id)
         setComments(comments.filter(c => c.id !== id))
         return
       }

@@ -1,7 +1,7 @@
 import Sidebar from '@/components/admin/Sidebar'
 import { createClient } from '@/lib/supabase/server'
 import { isMockEnabled } from '@/lib/supabase/mockDb'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 interface AdminLayoutProps {
@@ -57,6 +57,13 @@ async function getAdminSession() {
 }
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
+  const pathname = headers().get('x-pathname') || ''
+
+  // Bypass authentication redirection and sidebar frame if we are on the login page
+  if (pathname.includes('/admin/login')) {
+    return <>{children}</>
+  }
+
   const session = await getAdminSession()
 
   // Redirect to login if unauthenticated

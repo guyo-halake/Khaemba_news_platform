@@ -1,49 +1,54 @@
-import { Article, Category, Video, Ad, Comment, User, NewsletterSubscriber } from '../types'
+import { Article, Video, Category, User } from '@/lib/types'
 
-export const isMockEnabled = (): boolean => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const isEnvDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
-  return isEnvDemo || !url || url.includes('placeholder-project')
+// Extended Ad type for mock with count fields matching AdsManager component
+export interface MockAd {
+  id: string; client_name: string; image_url: string; target_link: string;
+  position: 'homepage_top' | 'homepage_mid' | 'article_inline' | 'sidebar';
+  start_date: string; end_date: string; status: 'active' | 'paused' | 'expired';
+  impressions_count: number; clicks_count: number;
+  tenant_id?: string; created_at: string; updated_at?: string;
 }
 
+export interface MockComment {
+  id: string; article_id: string; author_name: string; body: string;
+  status: 'pending' | 'approved' | 'rejected'; created_at: string;
+}
 
+export interface MockAdClient {
+  id: string; name: string; email?: string | null; phone?: string | null; created_at: string;
+}
 
+export interface MockAdPayment {
+  id: string; client_id: string; ad_id?: string | null; amount: number; payment_date: string;
+  payment_method: 'M-Pesa' | 'Bank Transfer' | 'Card' | 'Cash';
+  status: 'pending' | 'completed' | 'refunded'; created_at: string;
+}
 
-// Helper function to convert YouTube URLs to reliable thumbnail
-export const getYouTubeThumbnail = (youtubeUrl: string): string => {
-  return 'https://images.unsplash.com/photo-1571335814519-27ec417caca5?w=800&q=80'
+export interface MockSubscriber {
+  id: string; email: string; subscribed_at: string;
+}
+
+export interface MockNewsletter {
+  id: string; subject: string; content: string; sent_at: string; recipients_count: number;
+}
+
+export interface MockInquiry {
+  id: string; name: string; email: string; subject: string; message: string;
+  type: 'contact' | 'advertise'; status: 'unread' | 'read' | 'replied'; created_at: string;
+}
+
+// 0. Demo mode check
+export function isMockEnabled(): boolean {
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  }
+  return process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 }
 
 // 1. Mock Users
 export const mockUsers: User[] = [
-  {
-    id: 'u-1',
-    full_name: 'Duncan Khaemba',
-    role: 'admin',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    created_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'u-2',
-    full_name: 'Sarah Jepchirchir',
-    role: 'editor',
-    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    created_at: '2026-02-15T00:00:00Z',
-  },
-  {
-    id: 'u-3',
-    full_name: 'Dennis Omondi',
-    role: 'contributor',
-    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    created_at: '2026-03-10T00:00:00Z',
-  },
-  {
-    id: 'u-dev',
-    full_name: 'Razak Developer',
-    role: 'admin',
-    avatar_url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=150',
-    created_at: '2026-07-19T00:00:00Z',
-  }
+  { id: 'u-1', full_name: 'Duncan Khaemba', role: 'admin', avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', created_at: '2024-01-01T00:00:00Z' },
+  { id: 'u-2', full_name: 'Sarah Jepchirchir', role: 'editor', avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', created_at: '2024-03-15T00:00:00Z' },
 ]
 
 // 2. Mock Categories
@@ -51,7 +56,7 @@ export const mockCategories: Category[] = [
   { id: 'cat-politics', name: 'Politics', slug: 'politics', accent_color: '#B23A3A' },
   { id: 'cat-business', name: 'Business', slug: 'business', accent_color: '#3A7D44' },
   { id: 'cat-sports', name: 'Sports', slug: 'sports', accent_color: '#2E5FA3' },
-  { id: 'cat-national', name: 'National', slug: 'national', accent_color: '#D97706' },
+  { id: 'cat-national', name: 'National', slug: 'national', accent_color: '#8A5A9E' },
   { id: 'cat-opinion', name: 'Opinion', slug: 'opinion', accent_color: '#5E6E7A' },
 ]
 
@@ -59,147 +64,243 @@ export const mockCategories: Category[] = [
 export let mockArticles: Article[] = [
   {
     id: 'art-1',
-    title: "Tom Mboya's Silenced Ambition: The Assassination of a Visionary",
-    slug: 'tom-mboyas-silenced-ambition-assassination-visionary',
-    excerpt: 'An NTV investigative dispatch by Duncan Khaemba revisiting the 1969 assassination of Cabinet Minister Tom Mboya and the lingering questions surrounding his death.',
+    title: "DCP's Landslide Win: How Ol Kalou Shook Ruto's Mt Kenya Strategy",
+    slug: 'dcp-landslide-ol-kalou-shook-ruto-mt-kenya-strategy',
+    excerpt: 'DCP candidate Sammy Waweru crushed UDA in the Ol Kalou by-election, triggering a political reckoning across Mt Kenya ahead of 2027.',
     body: [
-      { id: 'b1', type: 'paragraph', value: 'NAIROBI, Kenya — The July 5, 1969 assassination of Cabinet Minister Thomas Joseph Mboya remains one of the darkest and most consequential chapters in Kenya’s post-independence political history. More than five decades later, the question of who ordered the hit on the rising political star, widely tipped as the next president, remains unanswered.' },
-      { id: 'b2', type: 'heading', value: 'A Fresh Look at the Cold Case', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'In this special investigative dispatch, NTV’s senior political reporter Duncan Khaemba returns to the scene of the crime on Government Road (now Moi Avenue) where Mboya was gunned down outside Chhani\'s Pharmacy. The report brings to light a startling interview with a 92-year-old elder who claims to have been a confidant to the key conspirators behind the assassination.' },
-      { id: 'b4', type: 'quote', value: 'They told us Isaac Nahashon Njenga Njoroge was the lone gunman, but everyone in the room knew Njenga was a scapegoat who received his orders from the highest levels of the post-colonial security apparatus.' },
+      { id: 'b1', type: 'paragraph', value: "OL KALOU, Nyandarua County — The Independent Electoral and Boundaries Commission has declared Democracy for the Citizens Party candidate Sammy Douglas Kamau Waweru the winner of the Ol Kalou parliamentary by-election, securing roughly 35,440 votes against UDA's Samuel Muchina Nyagah, who trailed with just over 5,400. The seat fell vacant following the death of sitting MP David Njuguna Kiaraho." },
+      { id: 'b2', type: 'heading', value: 'A Proxy Battle for Mt Kenya', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "The contest had been read well beyond Nyandarua's borders, framed as the first direct electoral test between President William Ruto's UDA and a DCP camp aligned with former Deputy President Rigathi Gachagua since his party's launch. Senior Kenya Kwanza figures, including Deputy President Kithure Kindiki and several Cabinet secretaries, campaigned heavily for the UDA candidate, while Gachagua personally led DCP's ground campaign." },
+      { id: 'b4', type: 'quote', value: 'There will be Kenya after the election, and we must live together as brothers and sisters of one nation.' },
       { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
-      { id: 'b5', type: 'heading', value: 'Systematic Silencing of Ambition', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Mboya was not just a politician; he was the mastermind behind the modern labor movement in Kenya and the pioneer of the famous airlift program that educated students like Barack Obama Sr. in the United States. His global visibility and progressive policies made him a perceived threat to the conservative political elite of the time.' },
-      { id: 'b7', type: 'paragraph', value: 'The investigation details how the official trial of Njenga Njoroge was conducted in a rush, with critical witnesses silenced and court records sealed. Historians interviewed for the documentary argue that Mboya\'s death paved the way for decades of ethnic polarization in Kenyan politics.' }
+      { id: 'b5', type: 'heading', value: "Kindiki's Terse Response", meta: { level: 2 } },
+      { id: 'b6', type: 'paragraph', value: 'DP Kindiki posted a brief two-word reaction on social media — "Back to the drawing board" — a line political observers have read as a rare admission from within Kenya Kwanza that its Mt Kenya strategy needs an overhaul before 2027.' },
+      { id: 'b7', type: 'paragraph', value: "The DCP win is the party's first parliamentary seat since its formation, and analysts expect it to accelerate political realignment across the region as both camps position themselves for the next general election." }
     ],
-    featured_image_url: 'https://picsum.photos/800/450?random=1',
+    featured_image_url: 'https://picsum.photos/800/450?random=21',
     category_id: 'cat-politics',
     category: mockCategories[0],
     author_id: 'u-1',
     author: mockUsers[0],
     status: 'published',
     published_at: '2026-07-19T08:00:00Z',
-    tags: ['Tom Mboya', 'Assassination', 'Political History', 'Investigative'],
-    view_count: 5230,
+    tags: ['Ol Kalou', 'DCP', 'UDA', 'By-election', 'Mt Kenya'],
+    view_count: 15230,
     created_at: '2026-07-19T07:00:00Z',
     updated_at: '2026-07-19T08:00:00Z',
   },
   {
     id: 'art-2',
-    title: 'Uyombo Nuclear Jitters: Concerns Grow in Kilifi County',
-    slug: 'uyombo-nuclear-jitters-concerns-grow-kilifi-county',
-    excerpt: 'Kilifi residents and conservation groups raise alarm over plans to build Kenya’s first nuclear plant along the pristine coast of Uyombo.',
+    title: 'Walking on Eggshells: Why DP Kindiki Faces a Bleak Political Road Ahead',
+    slug: 'walking-eggshells-dp-kindiki-bleak-political-road',
+    excerpt: "Analysts say Kindiki risks repeating Gachagua's fate — installed to deliver Mt Kenya but without an independent political base of his own.",
     body: [
-      { id: 'b1', type: 'paragraph', value: 'UYOMBO, Kilifi County — A sense of anxiety hangs over the coastal village of Uyombo as the national government intensifies its campaign to construct Kenya’s first nuclear power plant. The Nuclear Power and Energy Agency (NuPEA) has earmark-selected the location due to its stability, proximity to cooling waters, and sparse population. However, the plan has met fierce opposition from local residents and conservation groups.' },
-      { id: 'b2', type: 'heading', value: 'Threat to Marine Life and Livelihoods', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'Local fishermen, who rely entirely on the pristine marine ecosystem of Watamu and Malindi, argue that the discharge of warm water from the nuclear plant’s cooling systems could destroy local coral reefs and displace fish stocks. Environmentalists from the Kilifi County Green Coalition have joined the protests, warning of potential radioactive contamination risks.' },
-      { id: 'b4', type: 'quote', value: 'We have fished in these waters for generations. The sea is our only inheritance. If they build a nuclear plant here, they are taking away our lives.' },
+      { id: 'b1', type: 'paragraph', value: "NAIROBI — Deputy President Kithure Kindiki is facing mounting scrutiny over his political standing in Mt Kenya, with commentators increasingly comparing his trajectory to that of his predecessor, Rigathi Gachagua, who was impeached and removed from office." },
+      { id: 'b2', type: 'heading', value: 'A Loyalist Without a Base', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Unlike Gachagua, who built an independent political following before rising to the deputy presidency, Kindiki was handpicked directly by President Ruto and has no personal electoral base in the region. That dependency, observers argue, leaves him with little room to manoeuvre when regional sentiment turns against the administration, as it did following the Ol Kalou by-election result." },
       { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
-      { id: 'b5', type: 'heading', value: 'NuPEA’s Defense of the Project', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Defending the project, NuPEA officials state that Kenya’s industrialization blueprint requires a massive boost in base-load energy supply. They promise that the plant will employ state-of-the-art third-generation reactor technology with multiple safety layers. The agency also promises jobs, clean drinking water, and infrastructure improvements for the Uyombo community.' }
+      { id: 'b4', type: 'heading', value: 'The 2027 Pressure Test', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "With the next general election drawing closer, Kindiki's ability to reconnect Mt Kenya voters with the Ruto administration is increasingly seen as the defining test of his tenure — one that recent results suggest is far from guaranteed." }
     ],
-    featured_image_url: 'https://picsum.photos/800/450?random=2',
-    category_id: 'cat-county',
-    category: mockCategories[3],
-    author_id: 'u-1',
-    author: mockUsers[0],
-    status: 'published',
-    published_at: '2026-07-19T06:30:00Z',
-    tags: ['Nuclear Power', 'Kilifi', 'Environment', 'Uyombo'],
-    view_count: 2450,
-    created_at: '2026-07-19T05:00:00Z',
-    updated_at: '2026-07-19T06:30:00Z',
-  },
-  {
-    id: 'art-3',
-    title: 'Fumbo La Gakuru: The Final Hours of the Nyeri Governor',
-    slug: 'fumbo-la-gakuru-final-hours-nyeri-governor',
-    excerpt: 'An investigation into the road accident that claimed Nyeri Governor Wahome Gakuru, highlighting unanswered security and mechanical questions.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'NYERI, Kenya — The death of Nyeri\'s third governor, Dr. Wahome Gakuru, in a horrific road crash in November 2017 sent shockwaves across the country. In this investigation, Duncan Khaemba reconstructs the final hours of the governor\'s life, raising questions that continue to puzzle investigators during the ongoing public inquest.' },
-      { id: 'b2', type: 'heading', value: 'Mechanical Failure or Sabotage?', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'The governor’s vehicle, a Mercedes-Benz, crashed into a metal guardrail along the Kenol-Thika highway, which pierced through the car. Forensic auto-experts and mechanics who testified at the inquest revealed anomalies in the car\'s steering column and braking logs, suggesting a lack of proper maintenance or potential interference.' },
-      { id: 'b4', type: 'quote', value: 'The guardrail behaved like a spear. We must ask why standard highway safety barriers were designed in a way that would slice a vehicle open instead of redirecting it.' },
-      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
-      { id: 'b5', type: 'heading', value: 'The Inquest Gaps', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Family members have raised questions regarding the delay in emergency service response times and why key security details accompanying the governor were reassigned on the eve of the trip. The investigation urges public agencies to release the complete forensic findings.' }
-    ],
-    featured_image_url: 'https://picsum.photos/800/450?random=4',
-    category_id: 'cat-county',
-    category: mockCategories[3],
-    author_id: 'u-1',
-    author: mockUsers[0],
-    status: 'published',
-    published_at: '2026-07-17T12:00:00Z',
-    tags: ['Nyeri', 'Gakuru', 'Security Investigations'],
-    view_count: 8100,
-    created_at: '2026-07-17T11:00:00Z',
-    updated_at: '2026-07-17T12:00:00Z',
-  },
-  {
-    id: 'art-4',
-    title: 'Bishop Alexander Kipsang Muge: The Ultimate Price of Truth',
-    slug: 'bishop-alexander-kipsang-muge-ultimate-price',
-    excerpt: 'A commemorative investigative review by Duncan Khaemba tracking the legacy of Bishop Muge and the political friction leading up to his 1990 accident.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'ELDORET, Kenya — In August 1990, Bishop Alexander Kipsang Muge of the Anglican Diocese of Eldoret set off on a journey to Busia. The trip was made despite clear threats and public warnings from cabinet minister Peter Okondo, who had stated that Muge would not leave Busia alive. Hours later, the bishop\'s car collided head-on with a truck, ending the life of one of Kenya\'s most outspoken champions of multi-party democracy.' },
-      { id: 'b2', type: 'heading', value: 'A Voice That Could Not Be Quieted', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'Bishop Muge was a vocal critic of the single-party regime, land grabbing, and state-sponsored violence. His sermons from the pulpit challenged the powerful political figures of the day, making him both a beloved champion of the poor and a thorn in the side of the administration.' },
-      { id: 'b4', type: 'quote', value: 'I am not afraid of death. If they want to kill me for speaking the truth, let them do so. The truth will outlive them.' },
-      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
-      { id: 'b5', type: 'heading', value: 'The Unresolved Legacy', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Duncan Khaemba\'s retrospective feature interviews family members, church leaders, and former intelligence operatives who reveal the intense surveillance and intimidation Muge faced. It highlights the lasting impact of his martyrdom on the second liberation of Kenya.' }
-    ],
-    featured_image_url: 'https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=800',
-    category_id: 'cat-opinion',
-    category: mockCategories[4],
-    author_id: 'u-1',
-    author: mockUsers[0],
-    status: 'published',
-    published_at: '2026-07-18T14:00:00Z',
-    tags: ['History', 'Bishop Muge', 'Justice'],
-    view_count: 3200,
-    created_at: '2026-07-18T13:00:00Z',
-    updated_at: '2026-07-18T14:00:00Z',
-  },
-  {
-    id: 'art-5',
-    title: 'The Chaotic Life of MP Aduma Awuor: No Bodyguard, No Driver',
-    slug: 'chaotic-life-mp-aduma-awuor-bodyguard-driver',
-    excerpt: 'How one Member of Parliament chooses to navigate high-stakes politics without standard security attachments.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'KISUMU, Kenya — In a political culture where members of parliament are usually accompanied by heavy security, chase cars, and armed bodyguards, Nyakach MP Aduma Awuor stands out. The lawmaker routinely walks the streets of his constituency, drives himself, and interacts with citizens without any protection detail.' },
-      { id: 'b2', type: 'heading', value: 'A Choice Rooted in the Community', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'Speaking to Duncan Khaemba, MP Aduma explains that his security lies with the people he represents. Despite having faced serious threats and security breaches in the past, including the burning of his family home during land-related disputes, he believes that walling himself off from the public would sever his connection to his constituents.' },
-      { id: 'b4', type: 'quote', value: 'If my people are safe, I am safe. If they are in danger, no amount of bodyguards can protect me from their despair.' },
-      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
-      { id: 'b5', type: 'heading', value: 'Redefining Political Leadership', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'This feature tracks the daily routine of the MP as he attends village meetings, inspects local water projects, and sits in roadside cafes. It serves as an exploration of civic trust in an era of heightened political security.' }
-    ],
-    featured_image_url: 'https://picsum.photos/800/450?random=3',
+    featured_image_url: 'https://picsum.photos/800/450?random=22',
     category_id: 'cat-politics',
     category: mockCategories[0],
     author_id: 'u-1',
     author: mockUsers[0],
     status: 'published',
     published_at: '2026-07-19T07:15:00Z',
-    tags: ['Parliament', 'Security', 'Politics'],
-    view_count: 1450,
+    tags: ['Kindiki', 'Deputy President', 'Mt Kenya', 'Politics'],
+    view_count: 9840,
     created_at: '2026-07-19T06:00:00Z',
     updated_at: '2026-07-19T07:15:00Z',
   },
   {
-    id: 'art-6',
-    title: 'Kenya Eliminates Morocco: Path to World Cup Semi-Finals',
-    slug: 'kenya-eliminates-morocco-world-cup-semi-finals',
-    excerpt: 'In a stunning upset, Kenya\'s national team defeats Morocco 3-1 in the quarterfinals, advancing to the World Cup semi-finals for the first time in history.',
+    id: 'art-3',
+    title: "Western Kenya's Running-Mate Push: Inside Wetang'ula and Mudavadi's Quiet Rivalry",
+    slug: 'western-kenya-running-mate-wetangula-mudavadi-rivalry',
+    excerpt: "As Kenya Kwanza MPs push Ruto to pick a Western Kenya running mate for 2027, two of the region's biggest political names are quietly jostling for the slot.",
     body: [
-      { id: 'b1', type: 'paragraph', value: 'DOHA, Qatar — In one of the most shocking moments in African football history, Kenya\'s national team delivered a masterclass performance to eliminate Morocco 3-1 in the FIFA World Cup quarterfinals on July 18, 2026.' },
-      { id: 'b2', type: 'heading', value: 'A Historic Victory', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'The Green and White dominated possession and created numerous scoring opportunities throughout the match. Victor Wanyama opened the scoring in the 23rd minute with a powerful header from a corner kick. Morocco equalized briefly, but Kenya responded with goals from Erick Ouma and Mohamed Salah (on loan from Liverpool) in the second half.' },
-      { id: 'b4', type: 'quote', value: 'This is not just a victory for Kenya; this is a victory for all of Africa. We have shown that we belong on the biggest stage.' },
-      { id: 'b5', type: 'heading', value: 'Next Opponent: Brazil or France', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Kenya will now face either Brazil or France in the semi-final. The team\'s confidence is at an all-time high, with fans across the country celebrating the historic achievement.' }
+      { id: 'b1', type: 'paragraph', value: "KAKAMEGA — In the aftermath of the Ol Kalou by-election defeat, a growing number of Kenya Kwanza legislators are urging President Ruto to consider a running mate from Western Kenya ahead of 2027, reviving a long-simmering contest for influence between two senior figures from the region." },
+      { id: 'b2', type: 'heading', value: 'Two Camps, One Region', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "The push has intensified debate over who best represents Western Kenya's interests within the ruling coalition, with allies on both sides positioning their principal as the natural choice should Ruto opt to reshuffle the ticket." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'What It Means for 2027', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "Political strategists say the outcome of this internal contest could shape how Kenya Kwanza approaches vote-rich Western Kenya, a region increasingly viewed as pivotal following the erosion of support in parts of Mt Kenya." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=23',
+    category_id: 'cat-politics',
+    category: mockCategories[0],
+    author_id: 'u-1',
+    author: mockUsers[0],
+    status: 'published',
+    published_at: '2026-07-19T09:30:00Z',
+    tags: ['Western Kenya', 'Wetangula', 'Mudavadi', '2027 Elections'],
+    view_count: 7120,
+    created_at: '2026-07-19T09:00:00Z',
+    updated_at: '2026-07-19T09:30:00Z',
+  },
+  {
+    id: 'art-4',
+    title: "Why Kenya's Middle Class Could Be Shrinking Fast",
+    slug: 'why-kenyas-middle-class-could-be-shrinking-fast',
+    excerpt: 'Rising living costs and stagnant wages are quietly eroding Kenya\'s middle-income households, economists warn.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "NAIROBI — A growing body of economic data suggests Kenya's middle class — long seen as a driver of consumer spending and political stability — is under sustained pressure, with rising costs of living outpacing income growth for many urban households." },
+      { id: 'b2', type: 'heading', value: 'Squeezed From Both Sides', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Economists point to a combination of high taxation, elevated fuel and food prices, and a weakening shilling as key factors pushing previously stable households closer to the poverty line. Debt servicing by the household sector has also climbed sharply in recent years." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'A Divided Picture', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "The trend sits uneasily alongside separate data showing a rise in the number of Kenyan dollar millionaires, underscoring a widening gap between the country's wealthiest residents and its squeezed middle." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=24',
+    category_id: 'cat-business',
+    category: mockCategories[1],
+    author_id: 'u-2',
+    author: mockUsers[1],
+    status: 'published',
+    published_at: '2026-07-19T10:00:00Z',
+    tags: ['Economy', 'Middle Class', 'Cost of Living'],
+    view_count: 11430,
+    created_at: '2026-07-19T09:00:00Z',
+    updated_at: '2026-07-19T10:00:00Z',
+  },
+  {
+    id: 'art-5',
+    title: "Why Civil Society Wants Kenya's Sh13 Trillion Debt Discussed at Dinner Tables",
+    slug: 'civil-society-sh13-trillion-debt-dinner-tables',
+    excerpt: 'Advocacy groups say Kenya\'s ballooning public debt is too often treated as an abstract Treasury figure rather than a household-level concern.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "NAIROBI — Civil society organisations are pushing for Kenya's public debt, now standing at roughly Sh13 trillion, to become a mainstream topic of everyday conversation rather than something confined to budget briefings and economic reports." },
+      { id: 'b2', type: 'heading', value: 'Making Debt Personal', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Campaigners argue that ordinary Kenyans often don't connect the dots between rising national debt and the taxes, fees, and service cuts they experience directly, and that closing this awareness gap could build more public pressure for fiscal discipline." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'Treasury Under Pressure', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "The push comes amid separate revelations that a portion of Eurobond proceeds was redirected to cover domestic debt obligations, further fuelling public scrutiny of how borrowed funds are managed." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=25',
+    category_id: 'cat-business',
+    category: mockCategories[1],
+    author_id: 'u-2',
+    author: mockUsers[1],
+    status: 'published',
+    published_at: '2026-07-19T10:30:00Z',
+    tags: ['Public Debt', 'Treasury', 'Eurobond', 'Civil Society'],
+    view_count: 6720,
+    created_at: '2026-07-19T09:45:00Z',
+    updated_at: '2026-07-19T10:30:00Z',
+  },
+  {
+    id: 'art-6',
+    title: "Kenya's Economy Is Creating More Millionaires — Just Not for Everyone",
+    slug: 'kenyas-economy-creating-more-millionaires',
+    excerpt: 'New wealth data shows a rising count of dollar millionaires in Kenya, even as middle-income households report growing financial strain.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "NAIROBI — Kenya is minting dollar millionaires at a faster pace than in previous years, according to new wealth tracking data, driven largely by real estate, financial services, and a small but growing tech and investment class." },
+      { id: 'b2', type: 'heading', value: 'Where the Wealth Is Concentrating', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Much of this growth is concentrated in Nairobi and a handful of urban centres, with high-net-worth individuals increasingly diversifying into offshore assets and private equity rather than traditional savings instruments." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'A Widening Divide', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "The findings arrive alongside separate warnings that Kenya's middle class is shrinking, painting a picture of an economy generating substantial wealth at the top while squeezing households in the middle." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=26',
+    category_id: 'cat-business',
+    category: mockCategories[1],
+    author_id: 'u-2',
+    author: mockUsers[1],
+    status: 'published',
+    published_at: '2026-07-19T11:00:00Z',
+    tags: ['Wealth', 'Economy', 'Millionaires', 'Nairobi'],
+    view_count: 8950,
+    created_at: '2026-07-19T10:15:00Z',
+    updated_at: '2026-07-19T11:00:00Z',
+  },
+  {
+    id: 'art-7',
+    title: 'Kilifi Opens Its First Safe House for Survivors of Gender-Based Violence',
+    slug: 'kilifi-opens-first-safe-house-gbv-survivors',
+    excerpt: 'The new facility gives Kilifi County survivors of gender-based violence a secure place to seek shelter and support for the first time.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "KILIFI — Kilifi County has opened its first dedicated safe house for survivors of gender-based violence, marking a significant step in the region's response to a persistent public health and safety crisis." },
+      { id: 'b2', type: 'heading', value: 'Filling a Long-Standing Gap', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Local officials and advocacy groups say the facility addresses a long-standing gap in the county, where survivors previously had few safe, confidential options for shelter while seeking legal or medical support." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: "What's Next", meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "County health and gender officials say the safe house will work alongside existing counselling and legal-aid services, with hopes of expanding capacity as demand becomes clearer." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=27',
+    category_id: 'cat-national',
+    category: mockCategories[3],
+    author_id: 'u-1',
+    author: mockUsers[0],
+    status: 'published',
+    published_at: '2026-07-18T12:00:00Z',
+    tags: ['Kilifi', 'Gender-Based Violence', 'Safe House', 'Coast'],
+    view_count: 5410,
+    created_at: '2026-07-18T11:00:00Z',
+    updated_at: '2026-07-18T12:00:00Z',
+  },
+  {
+    id: 'art-8',
+    title: 'Glock Pistol, Laptop Stolen From Nairobi Businessman',
+    slug: 'glock-pistol-laptop-stolen-nairobi-businessman',
+    excerpt: 'Police are investigating after a Nairobi businessman reported the theft of a licensed firearm and a laptop.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "NAIROBI — Police are investigating the theft of a licensed Glock pistol and a laptop belonging to a Nairobi businessman, in an incident that has raised fresh questions about the security of licensed firearms in the city." },
+      { id: 'b2', type: 'heading', value: 'Details Still Emerging', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Investigators have not yet released a full account of how the theft occurred. The case has been flagged to the Directorate of Criminal Investigations, given the involvement of a licensed firearm." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'A Developing Story', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "This report will be updated as police provide further details on the investigation and any recovered property." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=28',
+    category_id: 'cat-national',
+    category: mockCategories[3],
+    author_id: 'u-1',
+    author: mockUsers[0],
+    status: 'published',
+    published_at: '2026-07-19T05:00:00Z',
+    tags: ['Nairobi', 'Crime', 'Investigation'],
+    view_count: 4230,
+    created_at: '2026-07-19T04:30:00Z',
+    updated_at: '2026-07-19T05:00:00Z',
+  },
+  {
+    id: 'art-9',
+    title: 'Opportunity or Another Mega Gold Scandal in the Making?',
+    slug: 'opportunity-or-another-mega-gold-scandal',
+    excerpt: 'A newly announced mining deal is drawing both investor interest and sharp scrutiny, given Kenya\'s history with gold-investment scams.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "NAIROBI — A newly unveiled gold mining deal is drawing a mixed reaction, with some officials touting it as a genuine economic opportunity and others warning it echoes patterns seen in past Kenyan gold-investment scandals." },
+      { id: 'b2', type: 'heading', value: 'A History of Caution', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Kenya has seen a string of gold-related investment scams over the past decade, leaving regulators and the public wary of new mining announcements, even when backed by credible-sounding partners." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'Calls for Transparency', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "Analysts are calling for full public disclosure of the deal's ownership structure and licensing terms before it moves forward, arguing that transparency now could prevent reputational damage later." }
+    ],
+    featured_image_url: 'https://picsum.photos/800/450?random=29',
+    category_id: 'cat-national',
+    category: mockCategories[3],
+    author_id: 'u-1',
+    author: mockUsers[0],
+    status: 'published',
+    published_at: '2026-07-19T09:00:00Z',
+    tags: ['Mining', 'Gold', 'Investment', 'Scandal'],
+    view_count: 13980,
+    created_at: '2026-07-19T08:15:00Z',
+    updated_at: '2026-07-19T09:00:00Z',
+  },
+  {
+    id: 'art-10',
+    title: 'World Cup 2026: Spain Take On Argentina in Late Kickoff Clash',
+    slug: 'world-cup-2026-spain-argentina-late-kickoff',
+    excerpt: 'Two of the tournament\'s heavyweights meet in a high-stakes World Cup fixture, with Kenyan fans tuning in live.',
+    body: [
+      { id: 'b1', type: 'paragraph', value: "The FIFA World Cup 2026 continues with Spain facing Argentina in a fixture billed as one of the tournament's marquee matchups, kicking off at 22:00 local time." },
+      { id: 'b2', type: 'heading', value: 'What to Watch For', meta: { level: 2 } },
+      { id: 'b3', type: 'paragraph', value: "Both sides enter the match with strong tournament form, and neutral fans across Kenya are expected to follow the game closely via live broadcasts and streaming coverage." },
+      { id: 'ad-slot', type: 'embed', value: 'ad_marker', meta: { provider: 'internal_ad' } },
+      { id: 'b4', type: 'heading', value: 'Live Coverage', meta: { level: 2 } },
+      { id: 'b5', type: 'paragraph', value: "Follow live updates and post-match analysis as the tournament heads toward its knockout stages." }
     ],
     featured_image_url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800',
     category_id: 'cat-sports',
@@ -207,615 +308,630 @@ export let mockArticles: Article[] = [
     author_id: 'u-2',
     author: mockUsers[1],
     status: 'published',
-    published_at: '2026-07-19T14:00:00Z',
-    tags: ['World Cup', 'Kenya', 'Morocco', 'Soccer'],
-    view_count: 45230,
-    created_at: '2026-07-18T22:00:00Z',
-    updated_at: '2026-07-19T14:00:00Z',
-  },
-  {
-    id: 'art-7',
-    title: 'Gor Mahia vs AFC Leopards: Derby Intensity Peaks',
-    slug: 'gor-mahia-afc-leopards-derby-intensity',
-    excerpt: 'The rivalry between Kenya\'s two biggest football clubs reaches fever pitch as they prepare for the Championship playoff final.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'NAIROBI — The anticipated Kenya Premier League playoff final between Gor Mahia and AFC Leopards is set for July 22, 2026. Both teams are unbeaten in the last 10 matches, setting the stage for an epic encounter.' },
-      { id: 'b2', type: 'heading', value: 'Form and Momentum', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'Gor Mahia has been dominant at home, while AFC Leopards has shown impressive away form. The neutral venue will add an element of unpredictability to the fixture.' },
-      { id: 'b4', type: 'quote', value: 'This is what Kenyan football is all about. Two giants, one championship. Whoever wants it more will win it.' },
-      { id: 'b5', type: 'heading', value: 'Ticket Demand Record', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'The stadium has already sold 45,000 tickets, breaking previous records. Fans from all over East Africa are expected to converge in Nairobi for this historic match.' }
-    ],
-    featured_image_url: 'https://picsum.photos/800/450?random=5',
-    category_id: 'cat-sports',
-    category: mockCategories[2],
-    author_id: 'u-2',
-    author: mockUsers[1],
-    status: 'published',
-    published_at: '2026-07-19T10:30:00Z',
-    tags: ['Sports', 'Kenya', 'Football', 'Derby'],
-    view_count: 12450,
-    created_at: '2026-07-19T09:00:00Z',
-    updated_at: '2026-07-19T10:30:00Z',
-  },
-  {
-    id: 'art-8',
-    title: 'Kenya\'s Tech Sector Boom: Silicon Savanna Attracts $2B Investment',
-    slug: 'kenya-tech-sector-boom-silicon-savanna',
-    excerpt: 'A record $2 billion in venture capital flows into Kenya\'s technology startups, signaling renewed investor confidence in the digital economy.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'NAIROBI — Kenya\'s technology sector has attracted a record $2 billion in venture capital funding this year, surpassing all previous records and positioning the nation as Africa\'s leading tech hub.' },
-      { id: 'b2', type: 'heading', value: 'Major Investments', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'Prominent investments include $500 million to fintech startups, $400 million to software development companies, and $300 million to mobile app developers. Asian and European venture capital firms have led the funding round.' },
-      { id: 'b4', type: 'quote', value: 'Kenya\'s tech talent is world-class, and the ecosystem is vibrant. We\'re seeing innovation that rivals Silicon Valley.' },
-      { id: 'b5', type: 'heading', value: 'Job Creation', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'The influx of capital is expected to create over 15,000 new tech jobs in the coming year. The government has committed to providing tax incentives for tech companies expanding operations in Kenya.' }
-    ],
-    featured_image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
-    category_id: 'cat-business',
-    category: mockCategories[1],
-    author_id: 'u-2',
-    author: mockUsers[1],
-    status: 'published',
-    published_at: '2026-07-19T12:00:00Z',
-    tags: ['Business', 'Technology', 'Investment', 'Startup'],
-    view_count: 28750,
-    created_at: '2026-07-19T10:00:00Z',
-    updated_at: '2026-07-19T12:00:00Z',
-  },
-  {
-    id: 'art-9',
-    title: 'Coffee Prices Surge: Kenyan Farmers Face Mixed Fortunes',
-    slug: 'coffee-prices-surge-kenyan-farmers',
-    excerpt: 'Global coffee commodity prices hit 10-year highs, benefiting some farmers but raising concerns about sustainability and fair trade practices.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'ELDORET — Coffee prices on the global commodity market have surged to a 10-year high of $3.50 per pound, driven by supply constraints in Brazil and increased demand from Asia.' },
-      { id: 'b2', type: 'heading', value: 'Farmer Perspective', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'While some Kenyan coffee farmers are seeing increased profits, concerns remain about whether these gains will reach smallholder farmers. Middlemen and exporters continue to control much of the supply chain.' },
-      { id: 'b4', type: 'quote', value: 'Yes, prices are high, but we still struggle with transportation costs and lack of direct market access. The system must change.' },
-      { id: 'b5', type: 'heading', value: 'Sustainability Questions', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Environmental organizations warn that increased demand is putting pressure on Kenya\'s coffee-growing regions, threatening biodiversity and water resources.' }
-    ],
-    featured_image_url: 'https://picsum.photos/800/450?random=6',
-    category_id: 'cat-business',
-    category: mockCategories[1],
-    author_id: 'u-1',
-    author: mockUsers[0],
-    status: 'published',
-    published_at: '2026-07-18T11:00:00Z',
-    tags: ['Business', 'Agriculture', 'Coffee', 'Commodities'],
-    view_count: 6820,
-    created_at: '2026-07-18T10:00:00Z',
-    updated_at: '2026-07-18T11:00:00Z',
-  },
-  {
-    id: 'art-10',
-    title: 'Opposition Coalition: Uhuru\'s New Political Move Reshapes Kenya\'s Future',
-    slug: 'opposition-coalition-uhuru-reshapes-kenya',
-    excerpt: 'Former President Uhuru Kenyatta\'s shock announcement of an opposition coalition signals a major political realignment ahead of the next election cycle.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'NAIROBI — In a stunning political development, former President Uhuru Kenyatta announced the formation of a new opposition coalition, signaling a major shift in Kenya\'s political landscape just two years away from the next general election.' },
-      { id: 'b2', type: 'heading', value: 'Coalition Partners', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'The coalition includes five regional political leaders and former government officials. Analysts believe this move is a response to recent government corruption investigations targeting Uhuru\'s allies.' },
-      { id: 'b4', type: 'quote', value: 'We are coming together to offer Kenyans a genuine alternative rooted in reform and accountability.' },
-      { id: 'b5', type: 'heading', value: 'Electoral Implications', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'Political analysts suggest this coalition could fracture the current ruling alliance and create a competitive three-way race. The 2028 election is now wide open.' }
-    ],
-    featured_image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    author_id: 'u-1',
-    author: mockUsers[0],
-    status: 'published',
-    published_at: '2026-07-19T11:00:00Z',
-    tags: ['Politics', 'Elections', 'Kenya', 'Uhuru'],
-    view_count: 34560,
-    created_at: '2026-07-19T09:30:00Z',
-    updated_at: '2026-07-19T11:00:00Z',
-  },
-  {
-    id: 'art-11',
-    title: 'Devolution Crisis: Counties Face Budget Cuts Amid Fiscal Standoff',
-    slug: 'devolution-crisis-counties-budget-cuts',
-    excerpt: 'Kenya\'s 47 counties brace for significant budget reductions as the national government grapples with declining tax revenues and mounting debt.',
-    body: [
-      { id: 'b1', type: 'paragraph', value: 'NAIROBI — County governments across Kenya are preparing for significant budget cuts as revenue-sharing disputes between the national and county governments continue to worsen. The Treasury has signaled that county allocations will be reduced by 15-20% in the next fiscal year.' },
-      { id: 'b2', type: 'heading', value: 'Impact on Services', meta: { level: 2 } },
-      { id: 'b3', type: 'paragraph', value: 'Healthcare, education, and infrastructure projects are expected to bear the brunt of the cuts. Several counties have already begun laying off staff and postponing development initiatives.' },
-      { id: 'b4', type: 'quote', value: 'The national government is underfunding devolution while demanding accountability. The system is broken.' },
-      { id: 'b5', type: 'heading', value: 'Legal Battle Looms', meta: { level: 2 } },
-      { id: 'b6', type: 'paragraph', value: 'County governors have indicated they will pursue legal action at the Supreme Court if the budget allocations are further reduced. A constitutional crisis over fiscal federalism appears imminent.' }
-    ],
-    featured_image_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800',
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    author_id: 'u-1',
-    author: mockUsers[0],
-    status: 'published',
-    published_at: '2026-07-19T09:00:00Z',
-    tags: ['Politics', 'Devolution', 'Budget', 'Counties'],
-    view_count: 18920,
-    created_at: '2026-07-18T23:00:00Z',
-    updated_at: '2026-07-19T09:00:00Z',
+    published_at: '2026-07-19T18:00:00Z',
+    tags: ['World Cup', 'Spain', 'Argentina', 'Football'],
+    view_count: 22150,
+    created_at: '2026-07-19T17:00:00Z',
+    updated_at: '2026-07-19T18:00:00Z',
   }
 ]
 
-// 4. Mock Videos
+// 4. Mock Videos / Documentaries
 export let mockVideos: Video[] = [
-  {
-    id: 'vid-1',
-    title: "Tom Mboya's Silenced Ambition | NTV Presents",
-    slug: 'tom-mboyas-silenced-ambition',
-    description: "An NTV investigative documentary by Duncan Khaemba exploring the legacy, political rise, and unresolved details of the 1969 assassination of Cabinet Minister Tom Mboya.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=1',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=HAMi_K6y7Ys',
-    duration_seconds: 2340, // 39 mins
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    status: 'published',
-    published_at: '2023-07-05T18:00:00Z',
-    view_count: 320000,
-    created_at: '2023-07-05T17:00:00Z',
-  },
-  {
-    id: 'vid-2',
-    title: 'Uyombo Nuclear Jitters | Special Feature',
-    slug: 'uyombo-nuclear-jitters',
-    description: "A special investigative feature by Duncan Khaemba on the social, ecological, and environmental friction surrounding the proposed nuclear facility in Uyombo, Kilifi.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=2',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=F0f5cE82Gmg',
-    duration_seconds: 1620, // 27 mins
-    category_id: 'cat-county',
-    category: mockCategories[3],
-    status: 'published',
-    published_at: '2026-07-15T08:00:00Z',
-    view_count: 42000,
-    created_at: '2026-07-15T07:00:00Z',
-  },
-  {
-    id: 'vid-3',
-    title: 'Fumbo La Gakuru | NTV Kenya',
-    slug: 'fumbo-la-gakuru',
-    description: "Unraveling the questions, timelines, and vehicle safety inquest surrounding the tragic road accident of former Nyeri Governor Wahome Gakuru.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=4',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=kYV3PeeU1Qk',
-    duration_seconds: 1850, // 30 mins
-    category_id: 'cat-county',
-    category: mockCategories[3],
-    status: 'published',
-    published_at: '2019-11-10T14:30:00Z',
-    view_count: 154000,
-    created_at: '2019-11-10T12:00:00Z',
-  },
-  {
-    id: 'vid-4',
-    title: 'Ambrose Rachier: Freemason Insider Speaks',
-    slug: 'ambrose-rachier-freemason-insider-speaks',
-    description: "Duncan Khaemba's viral interview with Gor Mahia Chairman Ambrose Rachier discussing his membership and structure of the Freemasons in Kenya.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=3',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=GV6_VN2fwgo',
-    duration_seconds: 3240, // 54 mins
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    status: 'published',
-    published_at: '2022-10-02T18:00:00Z',
-    view_count: 750000,
-    created_at: '2022-10-02T17:00:00Z',
-  },
-  {
-    id: 'vid-5',
-    title: 'The Lucrative Business of Fake Degree Factories',
-    slug: 'fake-degree-factories-ntv',
-    description: "Duncan Khaemba's exposé on underground credential mills operating in Kenya, selling fake degrees to corporate workers and government officials.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=7',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_seconds: 1980, // 33 mins
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    status: 'published',
-    published_at: '2026-06-20T19:00:00Z',
-    view_count: 285000,
-    created_at: '2026-06-20T18:00:00Z',
-  },
-  {
-    id: 'vid-6',
-    title: 'Nairobi County Water Crisis: A Nation Without Water',
-    slug: 'nairobi-water-crisis-documentary',
-    description: "An in-depth investigation by Duncan Khaemba into Nairobi Water Company's mismanagement and the water rationing affecting millions of residents.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=8',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_seconds: 2100, // 35 mins
-    category_id: 'cat-county',
-    category: mockCategories[3],
-    status: 'published',
-    published_at: '2026-07-01T20:00:00Z',
-    view_count: 125000,
-    created_at: '2026-07-01T19:00:00Z',
-  },
-  {
-    id: 'vid-7',
-    title: 'Inside Kenya Power: Why Blackouts Define Our Nation',
-    slug: 'kenya-power-blackouts-crisis',
-    description: "Duncan Khaemba exposes the systemic failures at Kenya Power and Lighting Company, leading to nationwide power outages and economic losses.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=9',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_seconds: 1740, // 29 mins
-    category_id: 'cat-business',
-    category: mockCategories[1],
-    status: 'published',
-    published_at: '2026-06-25T17:30:00Z',
-    view_count: 98500,
-    created_at: '2026-06-25T16:00:00Z',
-  },
-  {
-    id: 'vid-8',
-    title: 'Blood Business: Kenya\'s Unregulated Blood Banking System',
-    slug: 'kenya-blood-banking-crisis',
-    description: "An alarming investigation into how unregulated blood banks in Kenya are collecting contaminated blood, risking the lives of transfusion recipients.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=10',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_seconds: 2280, // 38 mins
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    status: 'published',
-    published_at: '2026-05-10T21:00:00Z',
-    view_count: 420000,
-    created_at: '2026-05-10T20:00:00Z',
-  },
-  {
-    id: 'vid-9',
-    title: 'The Mombasa Port: Gateway to Corruption',
-    slug: 'mombasa-port-corruption-investigation',
-    description: "Duncan Khaemba investigates smuggling operations and customs corruption at the Port of Mombasa, Kenya's main international trade gateway.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=11',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_seconds: 2640, // 44 mins
-    category_id: 'cat-business',
-    category: mockCategories[1],
-    status: 'published',
-    published_at: '2026-04-15T18:45:00Z',
-    view_count: 175000,
-    created_at: '2026-04-15T17:00:00Z',
-  },
-  {
-    id: 'vid-10',
-    title: 'Mental Health Crisis: Kenya\'s Silent Epidemic',
-    slug: 'kenya-mental-health-epidemic',
-    description: "A compassionate documentary by Duncan Khaemba exploring the growing mental health crisis in Kenya and the lack of adequate mental health services.",
-    thumbnail_url: 'https://picsum.photos/800/450?random=12',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_seconds: 1560, // 26 mins
-    category_id: 'cat-opinion',
-    category: mockCategories[4],
-    status: 'published',
-    published_at: '2026-03-20T19:15:00Z',
-    view_count: 89000,
-    created_at: '2026-03-20T18:00:00Z',
-  }
-  ,{
-    id: 'vid-11',
-    title: 'NTV | Duncan Khaemba: Why Kenya Still Talks About Tom Mboya',
-    slug: 'ntv-duncan-khaemba-tom-mboya-short',
-    description: 'A tight short documentary edit revisiting Tom Mboya\'s legacy, the questions around his assassination, and why the story still matters today.',
-    thumbnail_url: 'https://picsum.photos/800/450?random=13',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=HAMi_K6y7Ys',
-    duration_seconds: 420,
-    category_id: 'cat-politics',
-    category: mockCategories[0],
-    status: 'published',
-    published_at: '2026-07-19T16:00:00Z',
-    view_count: 64200,
-    created_at: '2026-07-19T15:40:00Z',
-  },
-  {
-    id: 'vid-12',
-    title: 'NTV | Duncan Khaemba: Uyombo Residents Confront the Nuclear Plan',
-    slug: 'ntv-duncan-khaemba-uyombo-short',
-    description: 'A short dispatch from Kilifi County where residents, fishermen, and environmental groups debate the nuclear project.',
-    thumbnail_url: 'https://picsum.photos/800/450?random=14',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=F0f5cE82Gmg',
-    duration_seconds: 360,
-    category_id: 'cat-county',
-    category: mockCategories[3],
-    status: 'published',
-    published_at: '2026-07-19T15:20:00Z',
-    view_count: 49800,
-    created_at: '2026-07-19T15:00:00Z',
-  },
-  {
-    id: 'vid-13',
-    title: 'NTV | Duncan Khaemba: Kenya\'s Road to the World Cup Semi-Finals',
-    slug: 'ntv-duncan-khaemba-world-cup-short',
-    description: 'A quick sports documentary on Kenya\'s surprise run, the fans, and the energy around the national team.',
-    thumbnail_url: 'https://picsum.photos/800/450?random=15',
-    video_source_type: 'youtube',
-    video_url: 'https://www.youtube.com/watch?v=GV6_VN2fwgo',
-    duration_seconds: 540,
-    category_id: 'cat-sports',
-    category: mockCategories[2],
-    status: 'published',
-    published_at: '2026-07-19T15:10:00Z',
-    view_count: 31800,
-    created_at: '2026-07-19T14:50:00Z',
-  }
+  { id: 'vid-1', title: 'Inside Ol Kalou: The By-Election That Shook Mt Kenya', slug: 'inside-ol-kalou-by-election', description: 'A deep dive into the Ol Kalou by-election and its impact on 2027 politics.', thumbnail_url: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=600', video_source_type: 'youtube', video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', duration_seconds: 1845, category_id: 'cat-politics', category: mockCategories[0], status: 'published', published_at: '2026-07-18T10:00:00Z', view_count: 34200, created_at: '2026-07-17T08:00:00Z' },
+  { id: 'vid-2', title: 'Kenya\'s Debt Crisis Explained', slug: 'kenya-debt-crisis-explained', description: 'Breaking down the Sh13 trillion question.', thumbnail_url: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600', video_source_type: 'youtube', video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', duration_seconds: 2410, category_id: 'cat-business', category: mockCategories[1], status: 'published', published_at: '2026-07-15T14:00:00Z', view_count: 18700, created_at: '2026-07-14T10:00:00Z' },
+  { id: 'vid-3', title: 'World Cup 2026: Kenya\'s Football Dream', slug: 'world-cup-2026-kenya-football', description: 'How Kenyan fans are experiencing the World Cup.', thumbnail_url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600', video_source_type: 'youtube', video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', duration_seconds: 1520, category_id: 'cat-sports', category: mockCategories[2], status: 'published', published_at: '2026-07-19T06:00:00Z', view_count: 41500, created_at: '2026-07-19T04:00:00Z' },
 ]
 
 // 5. Mock Ads
-export let mockAds: Ad[] = [
-  {
-    id: 'ad-top',
-    client_name: 'Vipingo Ridge Golf Estates',
-    image_url: 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=1000&q=80',
-    target_link: 'https://vipingoridge.com',
-    position: 'homepage_top',
-    start_date: '2026-07-01',
-    end_date: '2026-07-31',
-    status: 'active',
-    created_at: '2026-07-01T00:00:00Z',
-    impressions: 48500,
-    clicks: 1240,
-  },
-  {
-    id: 'ad-mid',
-    client_name: 'Safaricom 5G Business Plan',
-    image_url: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1000&q=80',
-    target_link: 'https://safaricom.co.ke',
-    position: 'homepage_mid',
-    start_date: '2026-07-10',
-    end_date: '2026-08-10',
-    status: 'active',
-    created_at: '2026-07-10T00:00:00Z',
-    impressions: 32000,
-    clicks: 980,
-  },
-  {
-    id: 'ad-inline',
-    client_name: 'Equity Bank Supreme Banking',
-    image_url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80',
-    target_link: 'https://equitygroupholdings.com',
-    position: 'article_inline',
-    start_date: '2026-07-15',
-    end_date: '2026-07-22', // Expiring in 3 days!
-    status: 'active',
-    created_at: '2026-07-15T00:00:00Z',
-    impressions: 15400,
-    clicks: 432,
-  },
-  {
-    id: 'ad-sidebar',
-    client_name: 'KCB Mortgages: Own Your Home',
-    image_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=500&q=80',
-    target_link: 'https://kcbgroup.com',
-    position: 'sidebar',
-    start_date: '2026-07-15',
-    end_date: '2026-08-15',
-    status: 'active',
-    created_at: '2026-07-15T00:00:00Z',
-    impressions: 22400,
-    clicks: 340,
-  }
+export let mockAds: MockAd[] = [
+  { id: 'ad-1', client_name: 'Kenya Tourism Board', image_url: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800', target_link: 'https://magicalkenya.com', position: 'homepage_top', start_date: '2026-07-01', end_date: '2026-08-31', status: 'active', impressions_count: 24500, clicks_count: 890, created_at: '2026-07-01T00:00:00Z' },
+  { id: 'ad-2', client_name: 'Equity Bank', image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800', target_link: 'https://equitygroupholdings.com', position: 'article_inline', start_date: '2026-07-10', end_date: '2026-08-31', status: 'active', impressions_count: 18200, clicks_count: 520, created_at: '2026-07-10T00:00:00Z' },
+  { id: 'ad-3', client_name: 'Safaricom PLC', image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800', target_link: 'https://safaricom.co.ke', position: 'homepage_mid', start_date: '2026-06-15', end_date: '2026-08-31', status: 'active', impressions_count: 31000, clicks_count: 1200, created_at: '2026-06-15T00:00:00Z' },
+  { id: 'ad-4', client_name: 'Tusker Lager', image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800', target_link: 'https://eabl.com', position: 'sidebar', start_date: '2026-07-01', end_date: '2026-08-31', status: 'active', impressions_count: 12500, clicks_count: 450, created_at: '2026-07-01T00:00:00Z' },
 ]
 
 // 6. Mock Comments
-export let mockComments: Comment[] = [
-  {
-    id: 'c-1',
-    article_id: 'art-1',
-    author_name: 'John Muthama',
-    body: 'Devolution has really helped road networks in Machakos County. However, monitoring funds is key.',
-    status: 'approved',
-    created_at: '2026-07-18T12:30:00Z',
-  },
-  {
-    id: 'c-2',
-    article_id: 'art-1',
-    author_name: 'Fatuma Ali',
-    body: 'Excellent reporting. We need more focus on rural healthcare systems in the northern region.',
-    status: 'approved',
-    created_at: '2026-07-18T15:45:00Z',
-  },
-  {
-    id: 'c-3',
-    article_id: 'art-1',
-    author_name: 'David Langat',
-    body: 'Why are county staff salaries delayed every month? The Treasury must fix this.',
-    status: 'pending',
-    created_at: '2026-07-19T04:20:00Z',
-  }
+export let mockComments: MockComment[] = [
+  { id: 'cmt-1', article_id: 'art-1', author_name: 'James Mwangi', body: 'This election result is a clear signal. Mt Kenya has spoken.', status: 'approved', created_at: '2026-07-19T09:30:00Z' },
+  { id: 'cmt-2', article_id: 'art-1', author_name: 'Grace Akinyi', body: 'Great reporting, Duncan. Keep holding power accountable.', status: 'pending', created_at: '2026-07-19T10:15:00Z' },
+  { id: 'cmt-3', article_id: 'art-4', author_name: 'Peter Ochieng', body: 'The middle class squeeze is real. We are feeling it daily.', status: 'pending', created_at: '2026-07-19T11:00:00Z' },
+  { id: 'cmt-4', article_id: 'art-9', author_name: 'Fatuma Hassan', body: 'Another gold scam? Kenyans deserve better oversight.', status: 'approved', created_at: '2026-07-19T10:45:00Z' },
 ]
 
-// 7. Mock Subscribers
-export let mockSubscribers: NewsletterSubscriber[] = [
-  { id: 'sub-1', email: 'editor@khaembanews.com', subscribed_at: '2026-06-15T09:00:00Z' },
-  { id: 'sub-2', email: 'muthama.john@gmail.com', subscribed_at: '2026-07-02T14:22:00Z' },
-  { id: 'sub-3', email: 'ali.fatuma@yahoo.com', subscribed_at: '2026-07-10T10:11:00Z' }
+// 7. Mock Newsletter Subscribers
+export let mockSubscribers: MockSubscriber[] = [
+  { id: 'sub-1', email: 'james@example.com', subscribed_at: '2026-07-10T08:00:00Z' },
+  { id: 'sub-2', email: 'grace@example.com', subscribed_at: '2026-07-15T14:30:00Z' },
+  { id: 'sub-3', email: 'peter@example.com', subscribed_at: '2026-07-18T09:00:00Z' },
 ]
 
-// 8. In-Memory Operations for Analytics & CMS updates in Admin Panel
-export const addArticle = (art: Partial<Article>) => {
-  const newArt: Article = {
-    id: `art-${Date.now()}`,
-    title: art.title || 'Untitled',
-    slug: art.slug || `untitled-${Date.now()}`,
-    excerpt: art.excerpt || '',
-    body: art.body || [],
-    featured_image_url: art.featured_image_url || 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800',
-    category_id: art.category_id || 'cat-politics',
-    category: mockCategories.find(c => c.id === art.category_id) || mockCategories[0],
-    author_id: art.author_id || 'u-1',
-    author: mockUsers[0],
-    status: art.status || 'draft',
-    published_at: art.status === 'published' ? new Date().toISOString() : undefined,
-    tags: art.tags || [],
-    view_count: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+export let mockNewsletters: MockNewsletter[] = [
+  { id: 'nl-1', subject: 'Khaemba News Weekly Roundup', content: '<p>Welcome to our weekly newsletter...</p>', sent_at: '2026-07-15T10:00:00Z', recipients_count: 3 },
+  { id: 'nl-2', subject: 'Breaking: Major political realignment in Nairobi', content: '<p>A major development in Kenyan politics...</p>', sent_at: '2026-07-18T16:45:00Z', recipients_count: 3 }
+]
+
+export let mockInquiries: MockInquiry[] = [
+  { id: 'inq-1', name: 'John Kamau', email: 'john@kamauassociates.co.ke', subject: 'Ad Rates Query', message: 'Hello, we would like to advertise our real estate firm on your sidebar slot. What are your monthly rates?', type: 'advertise', status: 'unread', created_at: '2026-07-18T10:00:00Z' },
+  { id: 'inq-2', name: 'Amina Omondi', email: 'amina.omondi@outlook.com', subject: 'Tip-off: Health Ministry tender irregularity', message: 'I have documents detailing a suspect tender award at the Ministry of Health. Please contact me securely.', type: 'contact', status: 'unread', created_at: '2026-07-19T08:30:00Z' }
+]
+
+// ── CRUD Helpers ──
+let adCounter = mockAds.length + 1
+export async function addAd(data: Omit<MockAd, 'id' | 'created_at'>): Promise<MockAd> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addAd', data })
+    })
+    return res.json()
   }
-  mockArticles = [newArt, ...mockArticles]
-  return newArt
-}
 
-export const updateArticle = (id: string, updates: Partial<Article>) => {
-  mockArticles = mockArticles.map(art => {
-    if (art.id === id) {
-      const merged = { ...art, ...updates, updated_at: new Date().toISOString() }
-      if (updates.category_id) {
-        merged.category = mockCategories.find(c => c.id === updates.category_id)
-      }
-      return merged as Article
-    }
-    return art
-  })
-}
-
-export const deleteArticle = (id: string) => {
-  mockArticles = mockArticles.filter(art => art.id !== id)
-}
-
-export const addVideo = (vid: Partial<Video>) => {
-  const newVid: Video = {
-    id: `vid-${Date.now()}`,
-    title: vid.title || 'Untitled Video',
-    slug: vid.slug || `untitled-video-${Date.now()}`,
-    description: vid.description || '',
-    thumbnail_url: vid.thumbnail_url || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800',
-    video_source_type: vid.video_source_type || 'youtube',
-    video_url: vid.video_url || '',
-    duration_seconds: vid.duration_seconds || 0,
-    category_id: vid.category_id,
-    category: mockCategories.find(c => c.id === vid.category_id),
-    status: vid.status || 'draft',
-    published_at: vid.status === 'published' ? new Date().toISOString() : undefined,
-    view_count: 0,
-    created_at: new Date().toISOString(),
-  }
-  mockVideos = [newVid, ...mockVideos]
-  return newVid
-}
-
-export const updateVideo = (id: string, updates: Partial<Video>) => {
-  mockVideos = mockVideos.map(vid => {
-    if (vid.id === id) {
-      const merged = { ...vid, ...updates }
-      if (updates.category_id) {
-        merged.category = mockCategories.find(c => c.id === updates.category_id)
-      }
-      return merged as Video
-    }
-    return vid
-  })
-}
-
-export const deleteVideo = (id: string) => {
-  mockVideos = mockVideos.filter(vid => vid.id !== id)
-}
-
-export const addAd = (ad: Partial<Ad>) => {
-  const newAd: Ad = {
-    id: `ad-${Date.now()}`,
-    client_name: ad.client_name || 'New Client',
-    image_url: ad.image_url || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80',
-    target_link: ad.target_link || '#',
-    position: ad.position || 'homepage_top',
-    start_date: ad.start_date || new Date().toISOString().split('T')[0],
-    end_date: ad.end_date || new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString().split('T')[0],
-    status: ad.status || 'active',
-    created_at: new Date().toISOString(),
-    impressions: 0,
-    clicks: 0,
+  const newAd: MockAd = {
+    ...data,
+    id: `ad-${adCounter++}`,
+    created_at: new Date().toISOString()
   }
   mockAds = [newAd, ...mockAds]
+  saveDbToDisk()
   return newAd
 }
 
-export const updateAd = (id: string, updates: Partial<Ad>) => {
-  mockAds = mockAds.map(ad => {
-    if (ad.id === id) {
-      return { ...ad, ...updates } as Ad
-    }
-    return ad
-  })
+export async function editAd(id: string, data: Partial<MockAd>) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'editAd', id, data })
+    })
+    return
+  }
+
+  mockAds = mockAds.map(a => a.id === id ? { ...a, ...data, updated_at: new Date().toISOString() } : a)
+  saveDbToDisk()
 }
 
-export const deleteAd = (id: string) => {
-  mockAds = mockAds.filter(ad => ad.id !== id)
+export async function deleteAd(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteAd', id })
+    })
+    return
+  }
+
+  mockAds = mockAds.filter(a => a.id !== id)
+  saveDbToDisk()
 }
 
-export const trackAdEvent = (id: string, type: 'impression' | 'click') => {
-  mockAds = mockAds.map(ad => {
-    if (ad.id === id) {
-      if (type === 'impression') {
-        return { ...ad, impressions: (ad.impressions || 0) + 1 }
-      } else {
-        return { ...ad, clicks: (ad.clicks || 0) + 1 }
+export async function trackAdEvent(id: string, eventType: 'impression' | 'click') {
+  if (typeof window !== 'undefined') {
+    // Fire-and-forget background analytics log
+    fetch('/api/ads/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adId: id, eventType })
+    }).catch(() => {})
+    return
+  }
+
+  mockAds = mockAds.map(a => {
+    if (a.id === id) {
+      return {
+        ...a,
+        impressions_count: eventType === 'impression' ? (a.impressions_count || 0) + 1 : a.impressions_count,
+        clicks_count: eventType === 'click' ? (a.clicks_count || 0) + 1 : a.clicks_count
       }
     }
-    return ad
+    return a
   })
+  saveDbToDisk()
 }
 
-export const addSubscriber = (email: string) => {
-  const exists = mockSubscribers.find(s => s.email.toLowerCase() === email.toLowerCase())
-  if (!exists) {
-    mockSubscribers.push({
-      id: `sub-${Date.now()}`,
-      email,
-      subscribed_at: new Date().toISOString()
-    })
+// ── Disk Persistence Helpers (Server-side only) ──
+function saveDbToDisk() {
+  if (typeof window !== 'undefined') return
+  try {
+    const fs = require('f' + 's')
+    const path = require('p' + 'ath')
+    const DB_FILE_PATH = path.join(process.cwd(), 'mock_db_store.json')
+    const data = {
+      mockArticles,
+      mockVideos,
+      mockCategories,
+      mockAds,
+      mockComments,
+      mockSubscribers,
+      mockAdClients,
+      mockAdPayments,
+      mockNewsletters,
+      mockInquiries
+    }
+    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2))
+  } catch (err) {
+    console.error('Failed to save mock db to disk:', err)
   }
 }
 
-export const addComment = (comment: Partial<Comment>) => {
-  const newComment: Comment = {
-    id: `c-${Date.now()}`,
-    article_id: comment.article_id || 'art-1',
-    author_name: comment.author_name || 'Anonymous',
-    body: comment.body || '',
-    status: 'pending',
+function loadDbFromDisk() {
+  if (typeof window !== 'undefined') return
+  try {
+    const fs = require('f' + 's')
+    const path = require('p' + 'ath')
+    const DB_FILE_PATH = path.join(process.cwd(), 'mock_db_store.json')
+    if (fs.existsSync(DB_FILE_PATH)) {
+      const raw = fs.readFileSync(DB_FILE_PATH, 'utf-8')
+      const parsed = JSON.parse(raw)
+      if (parsed.mockArticles) {
+        mockArticles.length = 0
+        mockArticles.push(...parsed.mockArticles)
+      }
+      if (parsed.mockVideos) {
+        mockVideos.length = 0
+        mockVideos.push(...parsed.mockVideos)
+      }
+      if (parsed.mockCategories) {
+        mockCategories.length = 0
+        mockCategories.push(...parsed.mockCategories)
+      }
+      if (parsed.mockAds) {
+        mockAds.length = 0
+        mockAds.push(...parsed.mockAds)
+      }
+      if (parsed.mockComments) {
+        mockComments.length = 0
+        mockComments.push(...parsed.mockComments)
+      }
+      if (parsed.mockSubscribers) {
+        mockSubscribers.length = 0
+        mockSubscribers.push(...parsed.mockSubscribers)
+      }
+      if (parsed.mockAdClients) {
+        mockAdClients.length = 0
+        mockAdClients.push(...parsed.mockAdClients)
+      }
+      if (parsed.mockAdPayments) {
+        mockAdPayments.length = 0
+        mockAdPayments.push(...parsed.mockAdPayments)
+      }
+      if (parsed.mockNewsletters) {
+        mockNewsletters.length = 0
+        mockNewsletters.push(...parsed.mockNewsletters)
+      }
+      if (parsed.mockInquiries) {
+        mockInquiries.length = 0
+        mockInquiries.push(...parsed.mockInquiries)
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load mock db from disk:', err)
+  }
+}
+
+// Load persisted mock database on module startup
+loadDbFromDisk()
+
+let videoCounter = mockVideos.length + 1
+export async function addVideo(data: Omit<Video, 'id' | 'created_at'>): Promise<Video> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addVideo', data })
+    })
+    return res.json()
+  }
+
+  const newVid: Video = {
+    ...data,
+    id: `vid-${videoCounter++}`,
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  } as any
+  mockVideos = [newVid, ...mockVideos]
+  saveDbToDisk()
+  return newVid
+}
+
+export async function editVideo(id: string, data: Partial<Video>) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'editVideo', id, data })
+    })
+    return
+  }
+
+  mockVideos = mockVideos.map(v => v.id === id ? { ...v, ...data, updated_at: new Date().toISOString() } : v)
+  saveDbToDisk()
+}
+
+export async function deleteVideo(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteVideo', id })
+    })
+    return
+  }
+
+  mockVideos = mockVideos.filter(v => v.id !== id)
+  saveDbToDisk()
+}
+
+let articleCounter = mockArticles.length + 1
+
+export async function createArticle(data: Omit<Article, 'id' | 'created_at'>): Promise<Article> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'createArticle', data })
+    })
+    return res.json()
+  }
+
+  const newArt: Article = {
+    ...data,
+    id: `art-${articleCounter++}`,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    view_count: 0
+  } as any
+  mockArticles = [newArt, ...mockArticles]
+  saveDbToDisk()
+  return newArt
+}
+
+export async function updateArticle(id: string, data: Partial<Article>) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateArticle', id, data })
+    })
+    return
+  }
+
+  mockArticles = mockArticles.map(a => a.id === id ? { ...a, ...data, updated_at: new Date().toISOString() } : a)
+  saveDbToDisk()
+}
+
+export async function deleteArticle(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteArticle', id })
+    })
+    return
+  }
+
+  mockArticles = mockArticles.filter(a => a.id !== id)
+  saveDbToDisk()
+}
+
+export async function updateArticleStatus(id: string, status: 'draft' | 'published') {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateArticleStatus', id, status })
+    })
+    return
+  }
+
+  mockArticles = mockArticles.map(a => a.id === id ? {
+    ...a,
+    status,
+    published_at: status === 'published' ? new Date().toISOString() : a.published_at,
+    updated_at: new Date().toISOString()
+  } : a)
+  saveDbToDisk()
+}
+
+let categoryCounter = mockCategories.length + 1
+export async function addCategory(data: Omit<Category, 'id'>): Promise<Category> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addCategory', data })
+    })
+    return res.json()
+  }
+
+  const newCat: Category = {
+    ...data,
+    id: `cat-${categoryCounter++}`
+  }
+  mockCategories.push(newCat)
+  saveDbToDisk()
+  return newCat
+}
+
+export async function editCategory(id: string, data: Partial<Category>) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'editCategory', id, data })
+    })
+    return
+  }
+
+  const updated = mockCategories.map(c => c.id === id ? { ...c, ...data } : c)
+  mockCategories.length = 0
+  mockCategories.push(...updated)
+  saveDbToDisk()
+}
+
+export async function deleteCategory(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteCategory', id })
+    })
+    return
+  }
+
+  const filtered = mockCategories.filter(c => c.id !== id)
+  mockCategories.length = 0
+  mockCategories.push(...filtered)
+  saveDbToDisk()
+}
+
+let commentCounter = mockComments.length + 1
+export async function addComment(articleId: string, authorName: string, body: string): Promise<MockComment> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addComment', data: { articleId, authorName, body } })
+    })
+    return res.json()
+  }
+
+  const newComment: MockComment = {
+    id: `cmt-${commentCounter++}`,
+    article_id: articleId,
+    author_name: authorName,
+    body,
+    status: 'pending',
+    created_at: new Date().toISOString()
   }
   mockComments.push(newComment)
+  saveDbToDisk()
   return newComment
 }
 
-export const updateCommentStatus = (id: string, status: 'approved' | 'rejected') => {
-  mockComments = mockComments.map(c => {
-    if (c.id === id) {
-      return { ...c, status }
-    }
-    return c
-  })
+export async function updateCommentStatus(id: string, status: 'approved' | 'rejected') {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateCommentStatus', id, status })
+    })
+    return
+  }
+
+  const updated = mockComments.map(c => c.id === id ? { ...c, status } : c)
+  mockComments.length = 0
+  mockComments.push(...updated)
+  saveDbToDisk()
 }
 
-export const deleteComment = (id: string) => {
-  mockComments = mockComments.filter(c => c.id !== id)
+export async function deleteComment(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteComment', id })
+    })
+    return
+  }
+
+  const filtered = mockComments.filter(c => c.id !== id)
+  mockComments.length = 0
+  mockComments.push(...filtered)
+  saveDbToDisk()
 }
 
-export const editAd = updateAd
-export const editVideo = updateVideo
-export const createArticle = addArticle
-export const updateArticleStatus = (id: string, status: 'draft' | 'published' | 'scheduled') => {
-  mockArticles = mockArticles.map(art => {
-    if (art.id === id) {
-      return {
-        ...art,
-        status,
-        published_at: status === 'published' ? new Date().toISOString() : art.published_at,
-        updated_at: new Date().toISOString()
-      }
-    }
-    return art
-  })
+export let mockAdClients: MockAdClient[] = [
+  { id: 'cli-1', name: 'Kenya Tourism Board', email: 'ads@magicalkenya.com', phone: '0712345678', created_at: '2026-07-01T00:00:00Z' },
+  { id: 'cli-2', name: 'Equity Bank', email: 'marketing@equitybank.co.ke', phone: '0722000111', created_at: '2026-07-10T00:00:00Z' },
+  { id: 'cli-3', name: 'Safaricom PLC', email: 'ads@safaricom.co.ke', phone: '0709000222', created_at: '2026-06-15T00:00:00Z' }
+]
+
+export let mockAdPayments: MockAdPayment[] = [
+  { id: 'pay-1', client_id: 'cli-1', ad_id: 'ad-1', amount: 150000, payment_date: '2026-07-01', payment_method: 'Bank Transfer', status: 'completed', created_at: '2026-07-01T10:00:00Z' },
+  { id: 'pay-2', client_id: 'cli-2', ad_id: 'ad-2', amount: 80000, payment_date: '2026-07-10', payment_method: 'M-Pesa', status: 'completed', created_at: '2026-07-10T12:00:00Z' },
+  { id: 'pay-3', client_id: 'cli-3', ad_id: 'ad-3', amount: 250000, payment_date: '2026-06-15', payment_method: 'Bank Transfer', status: 'completed', created_at: '2026-06-15T09:00:00Z' }
+]
+
+let clientCounter = mockAdClients.length + 1
+export async function addAdClient(data: Omit<MockAdClient, 'id' | 'created_at'>): Promise<MockAdClient> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addAdClient', data })
+    })
+    return res.json()
+  }
+
+  const newClient: MockAdClient = {
+    ...data,
+    id: `cli-${clientCounter++}`,
+    created_at: new Date().toISOString()
+  }
+  mockAdClients.push(newClient)
+  saveDbToDisk()
+  return newClient
+}
+
+export async function editAdClient(id: string, data: Partial<MockAdClient>) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'editAdClient', id, data })
+    })
+    return
+  }
+
+  const updated = mockAdClients.map(c => c.id === id ? { ...c, ...data } : c)
+  mockAdClients.length = 0
+  mockAdClients.push(...updated)
+  saveDbToDisk()
+}
+
+export async function deleteAdClient(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteAdClient', id })
+    })
+    return
+  }
+
+  const filtered = mockAdClients.filter(c => c.id !== id)
+  mockAdClients.length = 0
+  mockAdClients.push(...filtered)
+  saveDbToDisk()
+}
+
+let paymentCounter = mockAdPayments.length + 1
+export async function addAdPayment(data: Omit<MockAdPayment, 'id' | 'created_at'>): Promise<MockAdPayment> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addAdPayment', data })
+    })
+    return res.json()
+  }
+
+  const newPayment: MockAdPayment = {
+    ...data,
+    id: `pay-${paymentCounter++}`,
+    created_at: new Date().toISOString()
+  }
+  mockAdPayments.push(newPayment)
+  saveDbToDisk()
+  return newPayment
+}
+
+export async function editAdPayment(id: string, data: Partial<MockAdPayment>) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'editAdPayment', id, data })
+    })
+    return
+  }
+
+  const updated = mockAdPayments.map(p => p.id === id ? { ...p, ...data } : p)
+  mockAdPayments.length = 0
+  mockAdPayments.push(...updated)
+  saveDbToDisk()
+}
+
+export async function deleteAdPayment(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteAdPayment', id })
+    })
+    return
+  }
+
+  const filtered = mockAdPayments.filter(p => p.id !== id)
+  mockAdPayments.length = 0
+  mockAdPayments.push(...filtered)
+  saveDbToDisk()
+}
+
+let inquiryCounter = mockInquiries.length + 1
+export async function addInquiry(data: Omit<MockInquiry, 'id' | 'created_at' | 'status'>): Promise<MockInquiry> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addInquiry', data })
+    })
+    return res.json()
+  }
+
+  const newInquiry: MockInquiry = {
+    ...data,
+    id: `inq-${inquiryCounter++}`,
+    status: 'unread',
+    created_at: new Date().toISOString()
+  }
+  mockInquiries.push(newInquiry)
+  saveDbToDisk()
+  return newInquiry
+}
+
+export async function updateInquiryStatus(id: string, status: 'unread' | 'read' | 'replied') {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateInquiryStatus', id, status })
+    })
+    return
+  }
+
+  const updated = mockInquiries.map(i => i.id === id ? { ...i, status } : i)
+  mockInquiries.length = 0
+  mockInquiries.push(...updated)
+  saveDbToDisk()
+}
+
+export async function deleteInquiry(id: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteInquiry', id })
+    })
+    return
+  }
+
+  const filtered = mockInquiries.filter(i => i.id !== id)
+  mockInquiries.length = 0
+  mockInquiries.push(...filtered)
+  saveDbToDisk()
+}
+
+export async function addSubscriber(email: string) {
+  if (typeof window !== 'undefined') {
+    await fetch('/api/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addSubscriber', email })
+    })
+    return
+  }
+
+  const exists = mockSubscribers.some(s => s.email.toLowerCase() === email.toLowerCase())
+  if (exists) return
+
+  const newSub = {
+    id: `sub-${mockSubscribers.length + 1}`,
+    email,
+    subscribed_at: new Date().toISOString()
+  }
+  mockSubscribers.push(newSub)
+  saveDbToDisk()
 }

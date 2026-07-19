@@ -3,6 +3,7 @@ export type UserRole = 'admin' | 'editor' | 'contributor';
 export interface User {
   id: string;
   full_name: string;
+  email?: string;
   role: UserRole;
   avatar_url?: string;
   created_at: string;
@@ -48,10 +49,10 @@ export interface Article {
   tags: string[];
   view_count: number;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
-export type VideoSourceType = 'youtube' | 'vimeo' | 'uploaded';
+export type VideoSourceType = 'youtube' | 'vimeo' | 'uploaded' | 'cloudflare_stream';
 export type VideoStatus = 'draft' | 'published';
 
 export interface Video {
@@ -63,11 +64,12 @@ export interface Video {
   video_source_type: VideoSourceType;
   video_url: string;
   duration_seconds: number;
-  category_id?: string;
+  category_id?: string | null;
   category?: Category;
   status: VideoStatus;
   published_at?: string;
   view_count: number;
+  series?: string;
   created_at: string;
 }
 
@@ -77,6 +79,7 @@ export type AdStatus = 'active' | 'paused' | 'expired';
 export interface Ad {
   id: string;
   client_name: string;
+  client_id?: string | null;
   image_url: string;
   target_link: string;
   position: AdPosition;
@@ -84,8 +87,10 @@ export interface Ad {
   end_date: string;
   status: AdStatus;
   created_at: string;
-  impressions?: number;
-  clicks?: number;
+  impressions_count: number;
+  clicks_count: number;
+  tenant_id?: string;
+  updated_at?: string;
 }
 
 export type CommentStatus = 'pending' | 'approved' | 'rejected';

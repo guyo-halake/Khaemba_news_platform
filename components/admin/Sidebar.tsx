@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, FileText, Film, Image as AdIcon, Users, Settings, LogOut, Sun, Moon, Newspaper, ShieldAlert } from 'lucide-react'
+import { LayoutDashboard, FileText, Film, Image as AdIcon, Users, Settings, LogOut, Sun, Moon, Newspaper, ShieldAlert, Tags, MessageSquare, Mail, Inbox } from 'lucide-react'
 import { useTheme } from '@/components/ThemeProvider'
 import { isMockEnabled } from '@/lib/supabase/mockDb'
 import { createClient } from '@/lib/supabase/client'
@@ -27,23 +27,26 @@ export default function Sidebar({ user }: SidebarProps) {
       document.cookie = 'mock_logged_in=; path=/; max-age=0'
       document.cookie = 'mock_user_role=; path=/; max-age=0'
       document.cookie = 'mock_user_name=; path=/; max-age=0'
-      router.push('/admin/login')
-      router.refresh()
+      window.location.href = '/admin/login'
       return
     }
 
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/admin/login')
-    router.refresh()
+    window.location.href = '/admin/login'
   }
 
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'editor', 'contributor'] },
     { href: '/admin/articles', label: 'Articles', icon: FileText, roles: ['admin', 'editor', 'contributor'] },
+    { href: '/admin/categories', label: 'Categories', icon: Tags, roles: ['admin', 'editor'] },
     { href: '/admin/videos', label: 'Videos', icon: Film, roles: ['admin', 'editor'] },
     { href: '/admin/ads', label: 'Ad Campaigns', icon: AdIcon, roles: ['admin'] },
+    { href: '/admin/comments', label: 'Comments', icon: MessageSquare, roles: ['admin', 'editor'] },
+    { href: '/admin/newsletter', label: 'Newsletter', icon: Mail, roles: ['admin'] },
+    { href: '/admin/inquiries', label: 'Inquiries', icon: Inbox, roles: ['admin', 'editor'] },
     { href: '/admin/users', label: 'Staff Directory', icon: Users, roles: ['admin'] },
+    { href: '/admin/themes', label: 'Theme Switcher', icon: Sun, roles: ['admin'] },
     { href: '/admin/settings', label: 'Site Settings', icon: Settings, roles: ['admin'] },
   ]
 

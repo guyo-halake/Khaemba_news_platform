@@ -8,9 +8,10 @@ import { Image as AdIcon, Plus, Edit, Trash2, X, Save, Eye, MousePointer, Percen
 
 interface AdsManagerProps {
   initialAds: Ad[]
+  tenantId: string
 }
 
-export default function AdsManager({ initialAds }: AdsManagerProps) {
+export default function AdsManager({ initialAds, tenantId }: AdsManagerProps) {
   const [ads, setAds] = useState<Ad[]>(initialAds)
   const [editingAd, setEditingAd] = useState<Ad | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -24,13 +25,19 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
   const [endDate, setEndDate] = useState('')
   const [status, setStatus] = useState<Ad['status']>('active')
 
-  const openNewForm = () => {
-    setEditingAd(null)
+  const resetForm = () => {
     setClientName('')
     setPosition('homepage_top')
     setImageUrl('')
     setTargetLink('')
-    
+    setStartDate('')
+    setEndDate('')
+    setStatus('active')
+    setEditingAd(null)
+  }
+
+  const openNewForm = () => {
+    resetForm()
     const today = new Date().toISOString().split('T')[0]
     const nextMonthObj = new Date()
     nextMonthObj.setMonth(nextMonthObj.getMonth() + 1)
@@ -38,7 +45,6 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
 
     setStartDate(today)
     setEndDate(nextMonth)
-    setStatus('active')
     setIsFormOpen(true)
   }
 
@@ -69,6 +75,7 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
         .from('ads')
         .delete()
         .eq('id', id)
+        .eq('tenant_id', tenantId)
 
       if (error) {
         alert('Failed to delete ad: ' + error.message)
@@ -95,6 +102,7 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
       start_date: startDate,
       end_date: endDate,
       status,
+      tenant_id: tenantId
     }
 
     try {
@@ -120,10 +128,17 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
         const { error } = await supabase
           .from('ads')
           .update({
-            ...payload,
+            client_name: clientName,
+            position,
+            image_url: imageUrl,
+            target_link: targetLink,
+            start_date: startDate,
+            end_date: endDate,
+            status,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingAd.id)
+          .eq('tenant_id', tenantId)
 
         if (error) throw error
         setAds(ads.map(a => (a.id === editingAd.id ? { ...a, ...payload } : a)))
@@ -196,10 +211,10 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
               <thead>
                 <tr className="border-b border-ink-navy/10 dark:border-gray-800 bg-paper-warm/30 dark:bg-gray-950/40 text-[10px] font-mono font-bold uppercase text-ink-navy/55 dark:text-gray-400">
                   <th className="px-6 py-4">Client & Slot</th>
-                  <th className="px-6 py-4">Schedules</th>
-                  <th className="px-6 py-4">Impressions</th>
-                  <th className="px-6 py-4">Clicks</th>
-                  <th className="px-6 py-4">CTR</th>
+                  <th className="px-6 py-4 hidden sm:table-cell">Schedules</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Impressions</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Clicks</th>
+                  <th className="px-6 py-4 hidden sm:table-cell">CTR</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -232,7 +247,7 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
                       </td>
 
                       {/* Dates */}
-                      <td className="px-6 py-4 font-mono text-[10px] text-ink-navy/70 dark:text-gray-400">
+                      <td className="px-6 py-4 hidden sm:table-cell font-mono text-[10px] text-ink-navy/70 dark:text-gray-400">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-3.5 h-3.5 text-amber" />
                           <span>{ad.start_date} to {ad.end_date}</span>
@@ -240,7 +255,7 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
                       </td>
 
                       {/* Impressions */}
-                      <td className="px-6 py-4 font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
+                      <td className="px-6 py-4 hidden md:table-cell font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
                         <span className="flex items-center space-x-1">
                           <Eye className="w-3.5 h-3.5 text-amber" />
                           <span>{ad.impressions_count}</span>
@@ -248,7 +263,7 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
                       </td>
 
                       {/* Clicks */}
-                      <td className="px-6 py-4 font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
+                      <td className="px-6 py-4 hidden md:table-cell font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
                         <span className="flex items-center space-x-1">
                           <MousePointer className="w-3.5 h-3.5 text-amber" />
                           <span>{ad.clicks_count}</span>
@@ -256,7 +271,7 @@ export default function AdsManager({ initialAds }: AdsManagerProps) {
                       </td>
 
                       {/* CTR */}
-                      <td className="px-6 py-4 font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
+                      <td className="px-6 py-4 hidden sm:table-cell font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
                         <span className="flex items-center space-x-1">
                           <Percent className="w-3.5 h-3.5 text-amber" />
                           <span>{calculateCTR(ad.impressions_count, ad.clicks_count)}</span>

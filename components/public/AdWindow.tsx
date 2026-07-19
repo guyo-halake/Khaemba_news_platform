@@ -34,12 +34,14 @@ export default function AdWindow({ position }: AdWindowProps) {
 
         const supabase = createClient()
         const todayStr = new Date().toISOString().split('T')[0]
+        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
         
         const { data, error } = await supabase
           .from('ads')
           .select('*')
           .eq('position', position)
           .eq('status', 'active')
+          .eq('tenant_id', tenantId)
           .lte('start_date', todayStr)
           .gte('end_date', todayStr)
           .limit(1)

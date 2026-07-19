@@ -14,15 +14,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } else {
     try {
       const supabase = createClient()
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
       const { data: art } = await supabase
         .from('articles')
         .select('slug, updated_at')
         .eq('status', 'published')
+        .eq('tenant_id', tenantId)
       articles = art || []
 
       const { data: cat } = await supabase
         .from('categories')
         .select('slug')
+        .eq('tenant_id', tenantId)
       categories = cat || []
     } catch (e) {
       console.error('Failed to load sitemap records:', e)

@@ -7,7 +7,7 @@ export const metadata = {
   title: 'Site Configuration | Staff Portal',
 }
 
-async function getSettingsCategoriesData() {
+async function getSettingsCategoriesData(tenantId: string) {
   if (isMockEnabled()) {
     return mockCategories
   }
@@ -17,6 +17,7 @@ async function getSettingsCategoriesData() {
     const { data } = await supabase
       .from('categories')
       .select('*')
+      .eq('tenant_id', tenantId)
       .order('name', { ascending: true })
 
     return (data || []) as Category[]
@@ -27,7 +28,22 @@ async function getSettingsCategoriesData() {
 }
 
 export default async function AdminSettingsPage() {
-  const categories = await getSettingsCategoriesData()
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let tenantId = 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
 
-  return <SettingsManager initialCategories={categories} />
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+    if (profile?.tenant_id) {
+      tenantId = profile.tenant_id
+    }
+  }
+
+  const categories = await getSettingsCategoriesData(tenantId)
+
+  return <SettingsManager initialCategories={categories} tenantId={tenantId} />
 }

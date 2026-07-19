@@ -1,13 +1,69 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight, Mail, Facebook, Twitter, Youtube, CheckCircle2, AlertCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { isMockEnabled } from '@/lib/supabase/mockDb'
+import { Category } from '@/lib/types'
 
 export default function Footer() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [siteName, setSiteName] = useState('Khaemba News')
+  const [footerBlurb, setFooterBlurb] = useState('Independent, county-first investigative reporting. Authoritative stories and in-depth documentaries outlining structural governance, economic growth, and communities in East Africa.')
+  const [siteCategories, setSiteCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      if (isMockEnabled()) {
+        return
+      }
+
+      try {
+        const supabase = createClient()
+        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+        const { data } = await supabase
+          .from('site_settings')
+          .select('site_name, footer_blurb')
+          .eq('tenant_id', tenantId)
+          .maybeSingle()
+
+        if (data) {
+          setSiteName(data.site_name || 'Khaemba News')
+          setFooterBlurb(data.footer_blurb || footerBlurb)
+        }
+      } catch (error) {
+        console.error('Failed to load footer settings:', error)
+      }
+    }
+
+    const fetchCategories = async () => {
+      if (isMockEnabled()) {
+        return
+      }
+
+      try {
+        const supabase = createClient()
+        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+        const { data } = await supabase
+          .from('categories')
+          .select('id, name, slug, accent_color')
+          .eq('tenant_id', tenantId)
+          .order('name', { ascending: true })
+
+        if (data) {
+          setSiteCategories(data as Category[])
+        }
+      } catch (error) {
+        console.error('Failed to load footer categories:', error)
+      }
+    }
+
+    fetchSiteSettings()
+    fetchCategories()
+  }, [])
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,16 +95,16 @@ export default function Footer() {
   return (
     <footer id="newsletter" className="w-full bg-ink-navy dark:bg-gray-950 text-paper-warm/80 dark:text-gray-400 pt-16 pb-8 px-4 md:px-8 border-t border-white/5 font-body">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12 border-b border-white/15">
-        
+
         {/* Column 1: Branding & Intro */}
         <div className="flex flex-col space-y-4">
           <Link href="/">
             <h2 className="font-headline font-black text-2xl tracking-tight text-white select-none">
-              KHAEMBA <span className="text-amber">NEWS</span>
+              {siteName}
             </h2>
           </Link>
           <p className="text-sm leading-relaxed">
-            Independent, county-first investigative reporting. Authoritative stories and in-depth documentaries outlining structural governance, economic growth, and communities in East Africa.
+            {footerBlurb}
           </p>
           <div className="flex space-x-4 pt-2">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2 bg-white/5 rounded-full hover:bg-amber hover:text-ink-navy transition-colors text-white" aria-label="Facebook">
@@ -67,11 +123,19 @@ export default function Footer() {
         <div className="flex flex-col space-y-4">
           <h3 className="font-mono text-xs font-bold tracking-widest text-white uppercase">Categories</h3>
           <div className="grid grid-cols-1 gap-2 text-sm">
-            <Link href="/category/politics" className="hover:text-amber transition-colors">Politics & Parliament</Link>
-            <Link href="/category/business" className="hover:text-amber transition-colors">Business & Devolution VC</Link>
-            <Link href="/category/county" className="hover:text-amber transition-colors">County News & Devolution</Link>
-            <Link href="/category/sports" className="hover:text-amber transition-colors">Track, Field & Sports</Link>
-            <Link href="/category/opinion" className="hover:text-amber transition-colors">Opinion & Editorials</Link>
+            {siteCategories.length > 0 ? siteCategories.map((category) => (
+              <Link key={category.id} href={`/category/${category.slug}`} className="hover:text-amber transition-colors">
+                {category.name}
+              </Link>
+            )) : (
+              <>
+                <Link href="/category/politics" className="hover:text-amber transition-colors">Politics & Parliament</Link>
+                <Link href="/category/business" className="hover:text-amber transition-colors">Business & Devolution VC</Link>
+                <Link href="/category/county" className="hover:text-amber transition-colors">County News & Devolution</Link>
+                <Link href="/category/sports" className="hover:text-amber transition-colors">Track, Field & Sports</Link>
+                <Link href="/category/opinion" className="hover:text-amber transition-colors">Opinion & Editorials</Link>
+              </>
+            )}
             <Link href="/documentaries" className="hover:text-amber transition-colors text-amber font-semibold">Documentaries Hub</Link>
           </div>
         </div>

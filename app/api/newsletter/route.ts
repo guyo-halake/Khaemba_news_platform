@@ -16,9 +16,14 @@ export async function POST(req: Request) {
     }
     
     const supabase = createClient()
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
     const { error } = await supabase
       .from('newsletter_subscribers')
-      .insert({ email })
+      .insert({
+        email,
+        tenant_id: tenantId
+      })
       
     if (error) {
       if (error.code === '23505') {

@@ -30,7 +30,7 @@ module.exports = {
         }
       },
       fontFamily: {
-        headline: ['var(--font-headline)', 'Fraunces', 'Georgia', 'serif'],
+        headline: ['var(--font-headline)', 'Sora', 'system-ui', 'sans-serif'],
         body: ['var(--font-body)', 'Inter', 'sans-serif'],
         mono: ['var(--font-mono)', 'IBM Plex Mono', 'monospace'],
       },

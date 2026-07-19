@@ -5,7 +5,7 @@ import { isMockEnabled, mockArticles, mockAds, mockComments, mockSubscribers } f
 import { Newspaper, Eye, Image as AdIcon, DollarSign, Clock, MessageSquare, Plus } from 'lucide-react'
 import Link from 'next/link'
 
-async function getDashboardMetrics() {
+async function getDashboardMetrics(tenantId: string) {
   if (isMockEnabled()) {
     const totalArticles = mockArticles.length
     const totalViews = mockArticles.reduce((acc, art) => acc + art.view_count, 0)
@@ -75,6 +75,7 @@ async function getDashboardMetrics() {
     const { data: articles } = await supabase
       .from('articles')
       .select('view_count')
+      .eq('tenant_id', tenantId)
 
     const totalArticles = articles?.length || 0
     const totalViews = articles?.reduce((acc, a) => acc + (a.view_count || 0), 0) || 0
@@ -84,6 +85,7 @@ async function getDashboardMetrics() {
       .from('ads')
       .select('position')
       .eq('status', 'active')
+      .eq('tenant_id', tenantId)
 
     const activeAds = ads?.length || 0
     const computedRevenue = ads?.reduce((acc, ad) => {
@@ -99,6 +101,7 @@ async function getDashboardMetrics() {
       .from('comments')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending')
+      .eq('tenant_id', tenantId)
 
     // Dummy charts data when connecting to live DB first time (it grows as analytics is added)
     const trafficData = [
@@ -142,7 +145,22 @@ async function getDashboardMetrics() {
 }
 
 export default async function AdminDashboardPage() {
-  const { stats, activities, trafficData, adRevenueData, pendingCommentsCount } = await getDashboardMetrics()
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let tenantId = 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+    if (profile?.tenant_id) {
+      tenantId = profile.tenant_id
+    }
+  }
+
+  const { stats, activities, trafficData, adRevenueData, pendingCommentsCount } = await getDashboardMetrics(tenantId)
 
   return (
     <div className="space-y-10">

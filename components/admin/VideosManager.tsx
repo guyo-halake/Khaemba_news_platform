@@ -9,9 +9,10 @@ import { Film, Plus, Edit, Trash2, X, Save, Eye, Clock, CheckCircle } from 'luci
 interface VideosManagerProps {
   initialVideos: Video[]
   categories: Category[]
+  tenantId: string
 }
 
-export default function VideosManager({ initialVideos, categories }: VideosManagerProps) {
+export default function VideosManager({ initialVideos, categories, tenantId }: VideosManagerProps) {
   const [videos, setVideos] = useState<Video[]>(initialVideos)
   const [editingVideo, setEditingVideo] = useState<Video | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -24,39 +25,45 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
   const [videoSourceType, setVideoSourceType] = useState<'youtube' | 'vimeo' | 'uploaded'>('youtube')
   const [videoUrl, setVideoUrl] = useState('')
   const [thumbnailUrl, setThumbnailUrl] = useState('')
-  const [durationSeconds, setDurationSeconds] = useState(0)
+  const [durationSeconds, setDurationSeconds] = useState('')
   const [status, setStatus] = useState<'draft' | 'published'>('draft')
 
-  const openNewForm = () => {
-    setEditingVideo(null)
+  const resetForm = () => {
     setTitle('')
     setSlug('')
     setDescription('')
-    setCategoryId(categories[0]?.id || '')
+    setCategoryId('')
     setVideoSourceType('youtube')
     setVideoUrl('')
     setThumbnailUrl('')
-    setDurationSeconds(600)
+    setDurationSeconds('')
     setStatus('draft')
+    setEditingVideo(null)
+  }
+
+  const openNewForm = () => {
+    resetForm()
+    setCategoryId(categories[0]?.id || '')
+    setDurationSeconds('600')
     setIsFormOpen(true)
   }
 
-  const openEditForm = (vid: Video) => {
-    setEditingVideo(vid)
-    setTitle(vid.title)
-    setSlug(vid.slug)
-    setDescription(vid.description)
-    setCategoryId(vid.category_id || '')
-    setVideoSourceType(vid.video_source_type)
-    setVideoUrl(vid.video_url)
-    setThumbnailUrl(vid.thumbnail_url)
-    setDurationSeconds(vid.duration_seconds)
-    setStatus(vid.status)
+  const openEditForm = (v: Video) => {
+    setEditingVideo(v)
+    setTitle(v.title)
+    setSlug(v.slug)
+    setDescription(v.description)
+    setCategoryId(v.category_id || '')
+    setVideoSourceType(v.video_source_type)
+    setVideoUrl(v.video_url)
+    setThumbnailUrl(v.thumbnail_url)
+    setDurationSeconds(String(v.duration_seconds))
+    setStatus(v.status)
     setIsFormOpen(true)
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to permanently delete this video?')) return
+    if (!confirm('Are you sure you want to delete this video?')) return
 
     try {
       if (isMockEnabled()) {
@@ -70,21 +77,19 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
         .from('videos')
         .delete()
         .eq('id', id)
+        .eq('tenant_id', tenantId)
 
-      if (error) {
-        alert('Failed to delete video: ' + error.message)
-      } else {
-        setVideos(videos.filter(v => v.id !== id))
-      }
-    } catch (err) {
-      console.error(err)
+      if (error) throw error
+      setVideos(videos.filter(v => v.id !== id))
+    } catch (err: any) {
+      alert('Failed to delete video: ' + err.message)
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title || !slug || !videoUrl || !thumbnailUrl) {
-      alert('Please fill out all required fields.')
+      alert('Please fill in all required fields.')
       return
     }
 
@@ -98,6 +103,7 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
       thumbnail_url: thumbnailUrl,
       duration_seconds: Number(durationSeconds),
       status,
+      tenant_id: tenantId
     }
 
     try {
@@ -122,10 +128,19 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
         const { error } = await supabase
           .from('videos')
           .update({
-            ...payload,
+            title,
+            slug,
+            description,
+            category_id: categoryId || null,
+            video_source_type: videoSourceType,
+            video_url: videoUrl,
+            thumbnail_url: thumbnailUrl,
+            duration_seconds: Number(durationSeconds),
+            status,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingVideo.id)
+          .eq('tenant_id', tenantId)
 
         if (error) throw error
         setVideos(videos.map(v => (v.id === editingVideo.id ? { ...v, ...payload } : v)))
@@ -189,8 +204,8 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
               <thead>
                 <tr className="border-b border-ink-navy/10 dark:border-gray-800 bg-paper-warm/30 dark:bg-gray-950/40 text-[10px] font-mono font-bold uppercase text-ink-navy/55 dark:text-gray-400">
                   <th className="px-6 py-4">Title & Details</th>
-                  <th className="px-6 py-4">Duration</th>
-                  <th className="px-6 py-4">Views</th>
+                  <th className="px-6 py-4 hidden sm:table-cell">Duration</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Views</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -198,7 +213,7 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
               <tbody className="divide-y divide-ink-navy/5 dark:divide-gray-800/85 text-xs">
                 {videos.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-10 font-mono text-ink-navy/40 dark:text-gray-500">
+                    <td colSpan={5} className="text-center py-10 font-mono text-ink-navy/40 dark:text-gray-555">
                       No documentaries uploaded yet.
                     </td>
                   </tr>
@@ -221,14 +236,14 @@ export default function VideosManager({ initialVideos, categories }: VideosManag
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
+                      <td className="px-6 py-4 hidden sm:table-cell font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
                         <span className="flex items-center space-x-1">
                           <Clock className="w-3.5 h-3.5 text-amber" />
                           <span>{formatDuration(vid.duration_seconds)}</span>
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
+                      <td className="px-6 py-4 hidden md:table-cell font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
                         <span className="flex items-center space-x-1">
                           <Eye className="w-3.5 h-3.5 text-amber" />
                           <span>{vid.view_count}</span>

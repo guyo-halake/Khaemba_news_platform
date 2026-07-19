@@ -12,9 +12,11 @@ import Link from 'next/link'
 interface ArticleFormProps {
   article?: Article
   categories: Category[]
+  tenantId: string
+  authorId: string
 }
 
-export default function ArticleForm({ article, categories }: ArticleFormProps) {
+export default function ArticleForm({ article, categories, tenantId, authorId }: ArticleFormProps) {
   const router = useRouter()
   const isEditing = !!article
 
@@ -96,17 +98,16 @@ export default function ArticleForm({ article, categories }: ArticleFormProps) {
             updated_at: new Date().toISOString()
           })
           .eq('id', article.id)
+          .eq('tenant_id', tenantId)
 
         if (error) throw error
       } else {
-        const { data: userData } = await supabase.auth.getUser()
-        const authorId = userData.user?.id
-
         const { error } = await supabase
           .from('articles')
           .insert({
             ...payload,
-            author_id: authorId,
+            author_id: authorId || null,
+            tenant_id: tenantId,
             view_count: 0,
             published_at: status === 'published' ? new Date().toISOString() : null
           })

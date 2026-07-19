@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
-import { Fraunces, Inter, IBM_Plex_Mono } from 'next/font/google'
+import { Sora, Inter, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import AnalyticsTracker from '@/components/public/AnalyticsTracker'
+import { DemoProvider } from '@/lib/demo-context'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -10,10 +11,11 @@ const inter = Inter({
   display: 'swap',
 })
 
-const fraunces = Fraunces({
+const sora = Sora({
   subsets: ['latin'],
   variable: '--font-headline',
   display: 'swap',
+  weight: ['300', '400', '600', '700', '800'],
 })
 
 const ibmPlexMono = IBM_Plex_Mono({
@@ -60,10 +62,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${fraunces.variable} ${ibmPlexMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${sora.variable} ${ibmPlexMono.variable} antialiased`}>
         <ThemeProvider>
-          <AnalyticsTracker />
-          {children}
+          <DemoProvider>
+            <AnalyticsTracker />
+            {children}
+          </DemoProvider>
         </ThemeProvider>
       </body>
     </html>

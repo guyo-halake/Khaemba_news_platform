@@ -18,6 +18,8 @@ interface ArticlePageProps {
 }
 
 async function getArticleData(slug: string) {
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
   if (isMockEnabled()) {
     const article = mockArticles.find(a => a.slug === slug && a.status === 'published')
     if (!article) return { article: null, related: [] }
@@ -41,19 +43,26 @@ async function getArticleData(slug: string) {
       .select('*, category:categories(*), author:users(*)')
       .eq('slug', slug)
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .single()
 
     if (error || !article) {
+      const mockArt = mockArticles.find(a => a.slug === slug && a.status === 'published')
+      if (mockArt) {
+        const related = mockArticles
+          .filter(a => a.category_id === mockArt.category_id && a.id !== mockArt.id && a.status === 'published')
+          .slice(0, 3)
+        return { article: mockArt, related }
+      }
       return { article: null, related: [] }
     }
 
     // Increment view count in Supabase
-    await supabase
-      .rpc('increment_article_views', { article_id: article.id })
-      .catch(() => {
-        // Fallback standard update if RPC function is missing
-        supabase.from('articles').update({ view_count: article.view_count + 1 }).eq('id', article.id)
-      })
+    try {
+      await supabase.rpc('increment_article_views', { article_id: article.id })
+    } catch {
+      await supabase.from('articles').update({ view_count: article.view_count + 1 }).eq('id', article.id).eq('tenant_id', tenantId)
+    }
 
     // Fetch related articles
     const { data: related } = await supabase
@@ -61,6 +70,7 @@ async function getArticleData(slug: string) {
       .select('*, category:categories(*), author:users(*)')
       .eq('category_id', article.category_id)
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .neq('id', article.id)
       .limit(3)
 
@@ -70,6 +80,13 @@ async function getArticleData(slug: string) {
     }
   } catch (err) {
     console.error('Failed to load article detail:', err)
+    const mockArt = mockArticles.find(a => a.slug === slug && a.status === 'published')
+    if (mockArt) {
+      const related = mockArticles
+        .filter(a => a.category_id === mockArt.category_id && a.id !== mockArt.id && a.status === 'published')
+        .slice(0, 3)
+      return { article: mockArt, related }
+    }
     return { article: null, related: [] }
   }
 }
@@ -84,13 +101,13 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
   const categoryColor = article.category?.accent_color || '#D99A3F'
   const dateStr = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit'
-      })
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    })
     : 'Draft'
 
   // Render Editor Blocks
@@ -244,7 +261,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
 
           {/* Share Bar & Content Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-4">
-            
+
             {/* Sticky Share Bar */}
             <div className="md:col-span-1 flex md:flex-col items-center md:items-start space-x-4 md:space-x-0 md:space-y-4 md:sticky md:top-24 h-fit border-b md:border-b-0 pb-4 md:pb-0">
               <span className="text-[10px] font-mono font-bold tracking-wider text-ink-navy/40 dark:text-gray-500 uppercase">

@@ -8,9 +8,10 @@ import { Settings, Save, Plus, Trash2, CheckCircle2, Sliders, List, Megaphone } 
 
 interface SettingsManagerProps {
   initialCategories: Category[]
+  tenantId: string;
 }
 
-export default function SettingsManager({ initialCategories }: SettingsManagerProps) {
+export default function SettingsManager({ initialCategories, tenantId }: SettingsManagerProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [tickerText, setTickerText] = useState('BREAKING: Senate initiates review on county allocation funds. Draft report due Tuesday.')
   const [success, setSuccess] = useState(false)
@@ -37,14 +38,17 @@ export default function SettingsManager({ initialCategories }: SettingsManagerPr
     const payload = {
       name: newCatName,
       slug: newCatSlug,
-      accent_color: newCatColor
+      accent_color: newCatColor,
+      tenant_id: tenantId
     }
 
     try {
       if (isMockEnabled()) {
         const mockNewCat = {
           id: `cat-${Date.now()}`,
-          ...payload
+          name: newCatName,
+          slug: newCatSlug,
+          accent_color: newCatColor
         }
         mockCategories.push(mockNewCat)
         setCategories([...categories, mockNewCat])

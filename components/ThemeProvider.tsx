@@ -20,10 +20,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme(savedTheme)
       document.documentElement.classList.toggle('dark', savedTheme === 'dark')
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      const defaultTheme = prefersDark ? 'dark' : 'light'
-      setTheme(defaultTheme)
-      document.documentElement.classList.toggle('dark', defaultTheme === 'dark')
+      setTheme('light')
+      document.documentElement.classList.toggle('dark', false)
     }
   }, [])
 

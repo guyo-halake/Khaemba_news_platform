@@ -10,9 +10,10 @@ import { Edit, Trash2, Search, Filter, Plus, CheckCircle, Clock, Eye, AlertCircl
 interface ArticlesTableProps {
   initialArticles: Article[]
   categories: Category[]
+  tenantId?: string
 }
 
-export default function ArticlesTable({ initialArticles, categories }: ArticlesTableProps) {
+export default function ArticlesTable({ initialArticles, categories, tenantId }: ArticlesTableProps) {
   const [articles, setArticles] = useState<Article[]>(initialArticles)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -156,17 +157,17 @@ export default function ArticlesTable({ initialArticles, categories }: ArticlesT
             <thead>
               <tr className="border-b border-ink-navy/10 dark:border-gray-800 bg-paper-warm/30 dark:bg-gray-950/40 text-[10px] font-mono font-bold uppercase text-ink-navy/55 dark:text-gray-400">
                 <th className="px-6 py-4">Title & Excerpt</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4">Views</th>
+                <th className="px-6 py-4 hidden sm:table-cell">Category</th>
+                <th className="px-6 py-4 hidden md:table-cell">Views</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Published Date</th>
+                <th className="px-6 py-4 hidden lg:table-cell">Published Date</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-navy/5 dark:divide-gray-800/80 text-xs">
               {filteredArticles.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 font-mono text-ink-navy/40 dark:text-gray-500">
+                  <td colSpan={6} className="text-center py-10 font-mono text-ink-navy/40 dark:text-gray-550">
                     No articles found matching filters.
                   </td>
                 </tr>
@@ -186,7 +187,7 @@ export default function ArticlesTable({ initialArticles, categories }: ArticlesT
                     </td>
 
                     {/* Category */}
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 hidden sm:table-cell">
                       <span
                         style={{ borderLeftColor: art.category?.accent_color || '#d99a3f' }}
                         className="pl-2 border-l-2 text-[10px] font-mono font-bold text-ink-navy/70 dark:text-gray-300 uppercase"
@@ -196,7 +197,7 @@ export default function ArticlesTable({ initialArticles, categories }: ArticlesT
                     </td>
 
                     {/* Views */}
-                    <td className="px-6 py-4 font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
+                    <td className="px-6 py-4 hidden md:table-cell font-mono text-[11px] text-ink-navy/70 dark:text-gray-400">
                       <span className="flex items-center space-x-1">
                         <Eye className="w-3.5 h-3.5 text-amber" />
                         <span>{art.view_count}</span>
@@ -228,7 +229,7 @@ export default function ArticlesTable({ initialArticles, categories }: ArticlesT
                     </td>
 
                     {/* Published Date */}
-                    <td className="px-6 py-4 font-mono text-[10px] text-ink-navy/50 dark:text-gray-500">
+                    <td className="px-6 py-4 hidden lg:table-cell font-mono text-[10px] text-ink-navy/50 dark:text-gray-500">
                       {art.published_at
                         ? new Date(art.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                         : '—'}

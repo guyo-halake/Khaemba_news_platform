@@ -7,7 +7,7 @@ export const metadata = {
   title: 'Moderation Queue | Staff Portal',
 }
 
-async function getCommentsModerationData() {
+async function getCommentsModerationData(tenantId: string) {
   if (isMockEnabled()) {
     // Sort descending by created_at
     const sorted = [...mockComments].sort(
@@ -21,6 +21,7 @@ async function getCommentsModerationData() {
     const { data } = await supabase
       .from('comments')
       .select('*')
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
 
     return (data || []) as Comment[]
@@ -31,7 +32,22 @@ async function getCommentsModerationData() {
 }
 
 export default async function AdminCommentsPage() {
-  const comments = await getCommentsModerationData()
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let tenantId = 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
 
-  return <CommentsModerator initialComments={comments} />
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+    if (profile?.tenant_id) {
+      tenantId = profile.tenant_id
+    }
+  }
+
+  const comments = await getCommentsModerationData(tenantId)
+
+  return <CommentsModerator initialComments={comments} tenantId={tenantId} />
 }

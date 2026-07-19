@@ -15,6 +15,8 @@ interface CategoryPageProps {
 }
 
 async function getCategoryData(slug: string) {
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
   if (isMockEnabled()) {
     const category = mockCategories.find(c => c.slug === slug)
     if (!category) return { category: null, articles: [] }
@@ -31,6 +33,7 @@ async function getCategoryData(slug: string) {
       .from('categories')
       .select('*')
       .eq('slug', slug)
+      .eq('tenant_id', tenantId)
       .single()
 
     if (!category) return { category: null, articles: [] }
@@ -40,14 +43,34 @@ async function getCategoryData(slug: string) {
       .select('*, category:categories(*), author:users(*)')
       .eq('category_id', category.id)
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .order('published_at', { ascending: false })
 
-    return {
+    const result = {
       category: category as Category,
       articles: (articles || []) as Article[]
     }
+
+    if (result.articles.length === 0) {
+      const mockCat = mockCategories.find(c => c.slug === slug)
+      if (mockCat) {
+        return {
+          category: mockCat,
+          articles: mockArticles.filter(a => a.category_id === mockCat.id && a.status === 'published')
+        }
+      }
+    }
+
+    return result
   } catch (err) {
     console.error('Failed to load category page data:', err)
+    const mockCat = mockCategories.find(c => c.slug === slug)
+    if (mockCat) {
+      return {
+        category: mockCat,
+        articles: mockArticles.filter(a => a.category_id === mockCat.id && a.status === 'published')
+      }
+    }
     return { category: null, articles: [] }
   }
 }
@@ -79,7 +102,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {/* Content & Sidebar split */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Main List */}
           <div className="lg:col-span-8 space-y-8">
             {articles.length === 0 ? (

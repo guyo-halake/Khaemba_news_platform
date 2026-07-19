@@ -8,9 +8,10 @@ import { Users, ShieldAlert, Award, Shield, UserCheck, Key } from 'lucide-react'
 
 interface UsersManagerProps {
   initialUsers: User[]
+  tenantId: string
 }
 
-export default function UsersManager({ initialUsers }: UsersManagerProps) {
+export default function UsersManager({ initialUsers, tenantId }: UsersManagerProps) {
   const [users, setUsers] = useState<User[]>(initialUsers)
 
   const handleRoleChange = async (id: string, newRole: 'admin' | 'editor' | 'contributor') => {
@@ -29,6 +30,7 @@ export default function UsersManager({ initialUsers }: UsersManagerProps) {
         .from('users')
         .update({ role: newRole })
         .eq('id', id)
+        .eq('tenant_id', tenantId)
 
       if (error) {
         alert('Failed to update user role: ' + error.message)

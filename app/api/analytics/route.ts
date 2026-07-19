@@ -13,16 +13,22 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient()
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
     const { error } = await supabase
       .from('site_analytics')
       .insert({
         page_path,
         referrer,
-        user_agent
+        user_agent,
+        tenant_id: tenantId
       })
       
     if (error) {
       console.error('Error inserting site analytics:', error)
+      if (error.code === 'PGRST205') {
+        return NextResponse.json({ success: true, mode: 'disabled', warning: 'site_analytics table is missing' })
+      }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
     

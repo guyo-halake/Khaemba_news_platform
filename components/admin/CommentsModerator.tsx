@@ -7,10 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 import { Check, X, Trash2, ShieldAlert, CheckCircle, MessageSquare } from 'lucide-react'
 
 interface CommentsProps {
-  initialComments: Comment[]
+  initialComments: Comment[];
+  tenantId?: string;
 }
 
-export default function CommentsModerator({ initialComments }: CommentsProps) {
+export default function CommentsModerator({ initialComments, tenantId }: CommentsProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments)
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending')
 

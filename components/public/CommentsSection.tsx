@@ -29,11 +29,14 @@ export default function CommentsSection({ articleId }: CommentsSectionProps) {
       }
 
       const supabase = createClient()
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
       const { data, error } = await supabase
         .from('comments')
         .select('*')
         .eq('article_id', articleId)
         .eq('status', 'approved')
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: true })
 
       if (error) {
@@ -68,13 +71,16 @@ export default function CommentsSection({ articleId }: CommentsSectionProps) {
       }
 
       const supabase = createClient()
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
       const { error } = await supabase
         .from('comments')
         .insert({
           article_id: articleId,
           author_name: name,
           body,
-          status: 'pending'
+          status: 'pending',
+          tenant_id: tenantId
         })
 
       if (error) {

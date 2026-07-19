@@ -7,7 +7,7 @@ export const metadata = {
   title: 'Manage Videos | Staff Portal',
 }
 
-async function getVideosManagementData() {
+async function getVideosManagementData(tenantId: string) {
   if (isMockEnabled()) {
     return {
       videos: mockVideos,
@@ -20,10 +20,12 @@ async function getVideosManagementData() {
     const { data: categories } = await supabase
       .from('categories')
       .select('*')
+      .eq('tenant_id', tenantId)
 
     const { data: videos } = await supabase
       .from('videos')
       .select('*, category:categories(*)')
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
 
     return {
@@ -37,7 +39,22 @@ async function getVideosManagementData() {
 }
 
 export default async function AdminVideosPage() {
-  const { videos, categories } = await getVideosManagementData()
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let tenantId = 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
 
-  return <VideosManager initialVideos={videos} categories={categories} />
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+    if (profile?.tenant_id) {
+      tenantId = profile.tenant_id
+    }
+  }
+
+  const { videos, categories } = await getVideosManagementData(tenantId)
+
+  return <VideosManager initialVideos={videos} categories={categories} tenantId={tenantId} />
 }

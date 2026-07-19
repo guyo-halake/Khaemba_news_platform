@@ -37,10 +37,46 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser()
+  // Determine if mock mode is active based on environment or cookie
+  const isEnvDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const demoModeCookie = request.cookies.get('demo_mode')?.value
+  const mockActive = isEnvDemo || !url || url.includes('placeholder-project') || demoModeCookie === 'true' || demoModeCookie === undefined
 
   const path = request.nextUrl.pathname
+
+  if (mockActive) {
+    const isMockLoggedIn = request.cookies.get('mock_logged_in')?.value === 'true'
+    const mockUserRole = request.cookies.get('mock_user_role')?.value || 'contributor'
+
+    if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
+      if (!isMockLoggedIn) {
+        return NextResponse.redirect(new URL('/admin/login', request.url))
+      }
+
+      // Role-based route blocks for mock mode
+      if (mockUserRole !== 'admin') {
+        if (path.startsWith('/admin/users') || path.startsWith('/admin/ads') || path.startsWith('/admin/settings')) {
+          return NextResponse.redirect(new URL('/admin?error=forbidden', request.url))
+        }
+      }
+
+      if (mockUserRole === 'contributor') {
+        if (path.startsWith('/admin/videos') || path.startsWith('/admin/comments')) {
+          return NextResponse.redirect(new URL('/admin?error=forbidden', request.url))
+        }
+      }
+    }
+
+    if (path.startsWith('/admin/login') && isMockLoggedIn) {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
+    return response
+  }
+
+  // Refresh session if expired
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Protected Admin Routes Check
   if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {

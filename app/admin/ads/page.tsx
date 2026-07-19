@@ -7,7 +7,7 @@ export const metadata = {
   title: 'Ad Campaigns Manager | Staff Portal',
 }
 
-async function getAdsManagementData() {
+async function getAdsManagementData(tenantId: string) {
   if (isMockEnabled()) {
     return mockAds
   }
@@ -17,6 +17,7 @@ async function getAdsManagementData() {
     const { data } = await supabase
       .from('ads')
       .select('*')
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
 
     return (data || []) as Ad[]
@@ -27,7 +28,22 @@ async function getAdsManagementData() {
 }
 
 export default async function AdminAdsPage() {
-  const ads = await getAdsManagementData()
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let tenantId = 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
 
-  return <AdsManager initialAds={ads} />
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+    if (profile?.tenant_id) {
+      tenantId = profile.tenant_id
+    }
+  }
+
+  const ads = await getAdsManagementData(tenantId)
+
+  return <AdsManager initialAds={ads} tenantId={tenantId} />
 }

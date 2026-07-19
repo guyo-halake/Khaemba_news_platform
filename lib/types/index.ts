@@ -104,3 +104,13 @@ export interface NewsletterSubscriber {
   email: string;
   subscribed_at: string;
 }
+
+export interface SiteSettings {
+  id: string;
+  tenant_id: string;
+  site_name: string;
+  site_tagline: string;
+  footer_blurb: string;
+  created_at: string;
+  updated_at: string;
+}

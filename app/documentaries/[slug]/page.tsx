@@ -15,6 +15,8 @@ interface VideoPageProps {
 }
 
 async function getVideoDetailData(slug: string) {
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
+
   if (isMockEnabled()) {
     const video = mockVideos.find(v => v.slug === slug && v.status === 'published')
     if (!video) return { video: null, related: [] }
@@ -36,6 +38,7 @@ async function getVideoDetailData(slug: string) {
       .select('*, category:categories(*)')
       .eq('slug', slug)
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .single()
 
     if (error || !video) {
@@ -46,7 +49,7 @@ async function getVideoDetailData(slug: string) {
     await supabase
       .rpc('increment_video_views', { video_id: video.id })
       .catch(() => {
-        supabase.from('videos').update({ view_count: video.view_count + 1 }).eq('id', video.id)
+        supabase.from('videos').update({ view_count: video.view_count + 1 }).eq('id', video.id).eq('tenant_id', tenantId)
       })
 
     // Fetch related videos
@@ -54,6 +57,7 @@ async function getVideoDetailData(slug: string) {
       .from('videos')
       .select('*, category:categories(*)')
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .neq('id', video.id)
       .limit(3)
 

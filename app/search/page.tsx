@@ -15,6 +15,7 @@ interface SearchPageProps {
 
 async function performSearch(query: string) {
   const normalized = query.toLowerCase().trim()
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
 
   if (isMockEnabled()) {
     const articles = mockArticles.filter(
@@ -42,6 +43,7 @@ async function performSearch(query: string) {
       .from('articles')
       .select('*, category:categories(*), author:users(*)')
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .or(`title.ilike.%${normalized}%,excerpt.ilike.%${normalized}%`)
       .order('published_at', { ascending: false })
 
@@ -49,6 +51,7 @@ async function performSearch(query: string) {
       .from('videos')
       .select('*, category:categories(*)')
       .eq('status', 'published')
+      .eq('tenant_id', tenantId)
       .or(`title.ilike.%${normalized}%,description.ilike.%${normalized}%`)
       .order('created_at', { ascending: false })
 

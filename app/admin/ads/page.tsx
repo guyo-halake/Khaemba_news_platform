@@ -1,29 +1,53 @@
 import AdsManager from '@/components/admin/AdsManager'
 import { createClient } from '@/lib/supabase/server'
-import { isMockEnabled, mockAds } from '@/lib/supabase/mockDb'
+import { isMockEnabled, mockAds, mockAdClients, mockAdPayments } from '@/lib/supabase/mockDb'
 import { Ad } from '@/lib/types'
 
 export const metadata = {
-  title: 'Ad Campaigns Manager | Staff Portal',
+  title: 'Ad Campaigns & Revenue Ledger | Staff Portal',
 }
 
 async function getAdsManagementData(tenantId: string) {
   if (isMockEnabled()) {
-    return mockAds
+    return {
+      ads: mockAds,
+      clients: mockAdClients,
+      payments: mockAdPayments
+    }
   }
 
   try {
     const supabase = createClient()
-    const { data } = await supabase
+    
+    // Fetch Ads
+    const { data: ads } = await supabase
       .from('ads')
       .select('*')
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
 
-    return (data || []) as Ad[]
+    // Fetch Clients
+    const { data: clients } = await supabase
+      .from('ad_clients')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+
+    // Fetch Payments
+    const { data: payments } = await supabase
+      .from('ad_payments')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+
+    return {
+      ads: (ads || []) as Ad[],
+      clients: (clients || []) as any[],
+      payments: (payments || []) as any[]
+    }
   } catch (err) {
     console.error('Failed to load ads management data:', err)
-    return []
+    return { ads: [], clients: [], payments: [] }
   }
 }
 
@@ -43,7 +67,14 @@ export default async function AdminAdsPage() {
     }
   }
 
-  const ads = await getAdsManagementData(tenantId)
+  const { ads, clients, payments } = await getAdsManagementData(tenantId)
 
-  return <AdsManager initialAds={ads} tenantId={tenantId} />
+  return (
+    <AdsManager
+      initialAds={ads}
+      initialClients={clients}
+      initialPayments={payments}
+      tenantId={tenantId}
+    />
+  )
 }

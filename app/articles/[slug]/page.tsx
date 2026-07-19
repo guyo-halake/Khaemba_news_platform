@@ -91,6 +91,8 @@ async function getArticleData(slug: string) {
   }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function ArticleDetailPage({ params }: ArticlePageProps) {
   const { article, related } = await getArticleData(params.slug)
 

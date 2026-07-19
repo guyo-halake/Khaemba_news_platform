@@ -46,11 +46,11 @@ async function getVideoDetailData(slug: string) {
     }
 
     // Increment watch count in Supabase
-    await supabase
-      .rpc('increment_video_views', { video_id: video.id })
-      .catch(() => {
-        supabase.from('videos').update({ view_count: video.view_count + 1 }).eq('id', video.id).eq('tenant_id', tenantId)
-      })
+    try {
+      await supabase.rpc('increment_video_views', { video_id: video.id })
+    } catch (e) {
+      await supabase.from('videos').update({ view_count: video.view_count + 1 }).eq('id', video.id).eq('tenant_id', tenantId)
+    }
 
     // Fetch related videos
     const { data: related } = await supabase
@@ -71,6 +71,8 @@ async function getVideoDetailData(slug: string) {
   }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function DocumentaryDetailPage({ params }: VideoPageProps) {
   const { video, related } = await getVideoDetailData(params.slug)
 
@@ -79,7 +81,10 @@ export default async function DocumentaryDetailPage({ params }: VideoPageProps) 
   }
 
   // Parse embed links
-  const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo' | 'uploaded') => {
+  const getEmbedUrl = (url: string, type: string) => {
+    if (type === 'cloudflare_stream') {
+      return url
+    }
     if (type === 'youtube') {
       let videoId = ''
       try {
@@ -135,7 +140,7 @@ export default async function DocumentaryDetailPage({ params }: VideoPageProps) 
 
         {/* Video Player Section */}
         <section className="bg-black rounded-xl overflow-hidden shadow-2xl aspect-video w-full border border-gray-800 relative">
-          {video.video_source_type === 'uploaded' ? (
+          {video.video_source_type === 'uploaded' || video.video_url.startsWith('/uploads/') || video.video_url.endsWith('.mp4') ? (
             <video
               src={video.video_url}
               controls

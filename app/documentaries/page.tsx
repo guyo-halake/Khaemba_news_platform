@@ -46,6 +46,8 @@ async function getVideosData() {
   }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function DocumentariesPage() {
   const { videos, categories } = await getVideosData()
 

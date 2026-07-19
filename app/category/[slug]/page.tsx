@@ -75,6 +75,8 @@ async function getCategoryData(slug: string) {
   }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category, articles } = await getCategoryData(params.slug)
 

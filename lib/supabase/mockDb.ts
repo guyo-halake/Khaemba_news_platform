@@ -37,12 +37,30 @@ export interface MockInquiry {
   type: 'contact' | 'advertise'; status: 'unread' | 'read' | 'replied'; created_at: string;
 }
 
-// 0. Demo mode check
+// 0. Demo mode check — matches middleware detection logic
 export function isMockEnabled(): boolean {
+  // Check explicit env var first
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
+
+  // Check if Supabase URL is missing or still set to placeholder
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!url || url.includes('placeholder-project')) return true
+
+  // On the client, also check the demo_mode cookie and localStorage
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+    // Check cookie
+    const cookies = document.cookie.split('; ')
+    const demoCookie = cookies.find(c => c.startsWith('demo_mode='))?.split('=')[1]
+    if (demoCookie === 'true') return true
+
+    // Check localStorage (set by DemoProvider)
+    try {
+      const saved = localStorage.getItem('demoMode')
+      if (saved === 'true') return true
+    } catch {}
   }
-  return process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
+  return false
 }
 
 // 1. Mock Users

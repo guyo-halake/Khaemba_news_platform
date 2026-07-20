@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isMockEnabled } from '@/lib/supabase/mockDb'
 
-// To handle local uploads in dev mode, we can use require('f' + 's') and require('p' + 'ath')
-const fs = require('f' + 's')
-const path = require('p' + 'ath')
-
 export async function POST(req: Request) {
   try {
     const formData = await req.formData()
@@ -60,16 +56,23 @@ export async function POST(req: Request) {
     // Otherwise, simulate upload locally (Mock Mode)
     console.log('Simulating upload locally (mock mode)...')
     
-    // Create uploads folder inside public if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true })
+    // Try to save file locally — may fail on Vercel's read-only filesystem
+    let localUrl = ''
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true })
+      }
+      const safeFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
+      const filePath = path.join(uploadsDir, safeFileName)
+      fs.writeFileSync(filePath, buffer)
+      localUrl = `/uploads/${safeFileName}`
+    } catch {
+      // Filesystem may be read-only on Vercel — safe to ignore
+      localUrl = ''
     }
-
-    const safeFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
-    const filePath = path.join(uploadsDir, safeFileName)
-    
-    fs.writeFileSync(filePath, buffer)
 
     // Generate simulated cloudflare stream response
     const mockUid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
@@ -77,7 +80,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       uid: mockUid,
-      video_url: `/uploads/${safeFileName}`,
+      video_url: localUrl || `https://iframe.videodelivery.net/${mockUid}`,
       thumbnail_url: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800',
       duration: 320 // Simulated duration (5 min 20 sec)
     })

@@ -859,7 +859,7 @@
       "start_date": "2026-07-01",
       "end_date": "2026-08-31",
       "status": "active",
-      "impressions_count": 24500,
+      "impressions_count": 24502,
       "clicks_count": 890,
       "created_at": "2026-07-01T00:00:00Z"
     },
@@ -872,7 +872,7 @@
       "start_date": "2026-07-10",
       "end_date": "2026-08-31",
       "status": "active",
-      "impressions_count": 18200,
+      "impressions_count": 18202,
       "clicks_count": 520,
       "created_at": "2026-07-10T00:00:00Z"
     },
@@ -885,7 +885,7 @@
       "start_date": "2026-06-15",
       "end_date": "2026-08-31",
       "status": "active",
-      "impressions_count": 31000,
+      "impressions_count": 31012,
       "clicks_count": 1200,
       "created_at": "2026-06-15T00:00:00Z"
     },
@@ -952,6 +952,99 @@
       "id": "sub-3",
       "email": "peter@example.com",
       "subscribed_at": "2026-07-18T09:00:00Z"
+    }
+  ],
+  "mockAdClients": [
+    {
+      "id": "cli-1",
+      "name": "Kenya Tourism Board",
+      "email": "ads@magicalkenya.com",
+      "phone": "0712345678",
+      "created_at": "2026-07-01T00:00:00Z"
+    },
+    {
+      "id": "cli-2",
+      "name": "Equity Bank",
+      "email": "marketing@equitybank.co.ke",
+      "phone": "0722000111",
+      "created_at": "2026-07-10T00:00:00Z"
+    },
+    {
+      "id": "cli-3",
+      "name": "Safaricom PLC",
+      "email": "ads@safaricom.co.ke",
+      "phone": "0709000222",
+      "created_at": "2026-06-15T00:00:00Z"
+    }
+  ],
+  "mockAdPayments": [
+    {
+      "id": "pay-1",
+      "client_id": "cli-1",
+      "ad_id": "ad-1",
+      "amount": 150000,
+      "payment_date": "2026-07-01",
+      "payment_method": "Bank Transfer",
+      "status": "completed",
+      "created_at": "2026-07-01T10:00:00Z"
+    },
+    {
+      "id": "pay-2",
+      "client_id": "cli-2",
+      "ad_id": "ad-2",
+      "amount": 80000,
+      "payment_date": "2026-07-10",
+      "payment_method": "M-Pesa",
+      "status": "completed",
+      "created_at": "2026-07-10T12:00:00Z"
+    },
+    {
+      "id": "pay-3",
+      "client_id": "cli-3",
+      "ad_id": "ad-3",
+      "amount": 250000,
+      "payment_date": "2026-06-15",
+      "payment_method": "Bank Transfer",
+      "status": "completed",
+      "created_at": "2026-06-15T09:00:00Z"
+    }
+  ],
+  "mockNewsletters": [
+    {
+      "id": "nl-1",
+      "subject": "Khaemba News Weekly Roundup",
+      "content": "<p>Welcome to our weekly newsletter...</p>",
+      "sent_at": "2026-07-15T10:00:00Z",
+      "recipients_count": 3
+    },
+    {
+      "id": "nl-2",
+      "subject": "Breaking: Major political realignment in Nairobi",
+      "content": "<p>A major development in Kenyan politics...</p>",
+      "sent_at": "2026-07-18T16:45:00Z",
+      "recipients_count": 3
+    }
+  ],
+  "mockInquiries": [
+    {
+      "id": "inq-1",
+      "name": "John Kamau",
+      "email": "john@kamauassociates.co.ke",
+      "subject": "Ad Rates Query",
+      "message": "Hello, we would like to advertise our real estate firm on your sidebar slot. What are your monthly rates?",
+      "type": "advertise",
+      "status": "unread",
+      "created_at": "2026-07-18T10:00:00Z"
+    },
+    {
+      "id": "inq-2",
+      "name": "Amina Omondi",
+      "email": "amina.omondi@outlook.com",
+      "subject": "Tip-off: Health Ministry tender irregularity",
+      "message": "I have documents detailing a suspect tender award at the Ministry of Health. Please contact me securely.",
+      "type": "contact",
+      "status": "unread",
+      "created_at": "2026-07-19T08:30:00Z"
     }
   ]
 }

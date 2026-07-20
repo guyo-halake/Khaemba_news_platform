@@ -356,6 +356,18 @@ export let mockInquiries: MockInquiry[] = [
   { id: 'inq-2', name: 'Amina Omondi', email: 'amina.omondi@outlook.com', subject: 'Tip-off: Health Ministry tender irregularity', message: 'I have documents detailing a suspect tender award at the Ministry of Health. Please contact me securely.', type: 'contact', status: 'unread', created_at: '2026-07-19T08:30:00Z' }
 ]
 
+export let mockAdClients: MockAdClient[] = [
+  { id: 'cli-1', name: 'Kenya Tourism Board', email: 'ads@magicalkenya.com', phone: '0712345678', created_at: '2026-07-01T00:00:00Z' },
+  { id: 'cli-2', name: 'Equity Bank', email: 'marketing@equitybank.co.ke', phone: '0722000111', created_at: '2026-07-10T00:00:00Z' },
+  { id: 'cli-3', name: 'Safaricom PLC', email: 'ads@safaricom.co.ke', phone: '0709000222', created_at: '2026-06-15T00:00:00Z' }
+]
+
+export let mockAdPayments: MockAdPayment[] = [
+  { id: 'pay-1', client_id: 'cli-1', ad_id: 'ad-1', amount: 150000, payment_date: '2026-07-01', payment_method: 'Bank Transfer', status: 'completed', created_at: '2026-07-01T10:00:00Z' },
+  { id: 'pay-2', client_id: 'cli-2', ad_id: 'ad-2', amount: 80000, payment_date: '2026-07-10', payment_method: 'M-Pesa', status: 'completed', created_at: '2026-07-10T12:00:00Z' },
+  { id: 'pay-3', client_id: 'cli-3', ad_id: 'ad-3', amount: 250000, payment_date: '2026-06-15', payment_method: 'Bank Transfer', status: 'completed', created_at: '2026-06-15T09:00:00Z' }
+]
+
 // ── CRUD Helpers ──
 let adCounter = mockAds.length + 1
 export async function addAd(data: Omit<MockAd, 'id' | 'created_at'>): Promise<MockAd> {
@@ -431,11 +443,20 @@ export async function trackAdEvent(id: string, eventType: 'impression' | 'click'
 }
 
 // ── Disk Persistence Helpers (Server-side only) ──
+// Dynamic require to avoid webpack bundling fs/path for client
+function getFs() {
+  try { return require('fs') } catch { return null }
+}
+function getPath() {
+  try { return require('path') } catch { return null }
+}
+
 function saveDbToDisk() {
   if (typeof window !== 'undefined') return
+  const fs = getFs()
+  const path = getPath()
+  if (!fs || !path) return
   try {
-    const fs = require('f' + 's')
-    const path = require('p' + 'ath')
     const DB_FILE_PATH = path.join(process.cwd(), 'mock_db_store.json')
     const data = {
       mockArticles,
@@ -450,16 +471,17 @@ function saveDbToDisk() {
       mockInquiries
     }
     fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2))
-  } catch (err) {
-    console.error('Failed to save mock db to disk:', err)
+  } catch {
+    // Read-only filesystem (Vercel) — silently skip
   }
 }
 
 function loadDbFromDisk() {
   if (typeof window !== 'undefined') return
+  const fs = getFs()
+  const path = getPath()
+  if (!fs || !path) return
   try {
-    const fs = require('f' + 's')
-    const path = require('p' + 'ath')
     const DB_FILE_PATH = path.join(process.cwd(), 'mock_db_store.json')
     if (fs.existsSync(DB_FILE_PATH)) {
       const raw = fs.readFileSync(DB_FILE_PATH, 'utf-8')
@@ -505,8 +527,8 @@ function loadDbFromDisk() {
         mockInquiries.push(...parsed.mockInquiries)
       }
     }
-  } catch (err) {
-    console.error('Failed to load mock db from disk:', err)
+  } catch {
+    // Read-only filesystem or file missing — silently skip
   }
 }
 
@@ -742,17 +764,7 @@ export async function deleteComment(id: string) {
   saveDbToDisk()
 }
 
-export let mockAdClients: MockAdClient[] = [
-  { id: 'cli-1', name: 'Kenya Tourism Board', email: 'ads@magicalkenya.com', phone: '0712345678', created_at: '2026-07-01T00:00:00Z' },
-  { id: 'cli-2', name: 'Equity Bank', email: 'marketing@equitybank.co.ke', phone: '0722000111', created_at: '2026-07-10T00:00:00Z' },
-  { id: 'cli-3', name: 'Safaricom PLC', email: 'ads@safaricom.co.ke', phone: '0709000222', created_at: '2026-06-15T00:00:00Z' }
-]
-
-export let mockAdPayments: MockAdPayment[] = [
-  { id: 'pay-1', client_id: 'cli-1', ad_id: 'ad-1', amount: 150000, payment_date: '2026-07-01', payment_method: 'Bank Transfer', status: 'completed', created_at: '2026-07-01T10:00:00Z' },
-  { id: 'pay-2', client_id: 'cli-2', ad_id: 'ad-2', amount: 80000, payment_date: '2026-07-10', payment_method: 'M-Pesa', status: 'completed', created_at: '2026-07-10T12:00:00Z' },
-  { id: 'pay-3', client_id: 'cli-3', ad_id: 'ad-3', amount: 250000, payment_date: '2026-06-15', payment_method: 'Bank Transfer', status: 'completed', created_at: '2026-06-15T09:00:00Z' }
-]
+// mockAdClients and mockAdPayments are declared above (before loadDbFromDisk call)
 
 let clientCounter = mockAdClients.length + 1
 export async function addAdClient(data: Omit<MockAdClient, 'id' | 'created_at'>): Promise<MockAdClient> {

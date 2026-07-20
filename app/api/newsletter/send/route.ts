@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isMockEnabled, mockSubscribers, mockNewsletters } from '@/lib/supabase/mockDb'
-import { createClient } from '@/lib/supabase/client'
-
-const fs = require('f' + 's')
-const path = require('p' + 'ath')
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
@@ -15,8 +12,6 @@ export async function POST(req: Request) {
     }
 
     if (isMockEnabled()) {
-      const storePath = path.join(process.cwd(), 'mock_db_store.json')
-      
       const newDispatch = {
         id: `nl-${Date.now()}`,
         subject,
@@ -27,12 +22,19 @@ export async function POST(req: Request) {
 
       mockNewsletters.push(newDispatch)
 
-      // Sync to json store if it exists
-      if (fs.existsSync(storePath)) {
-        const store = JSON.parse(fs.readFileSync(storePath, 'utf-8'))
-        if (!store.mockNewsletters) store.mockNewsletters = []
-        store.mockNewsletters = [newDispatch, ...store.mockNewsletters]
-        fs.writeFileSync(storePath, JSON.stringify(store, null, 2))
+      // Sync to json store if it exists (server-side only, read-only on Vercel)
+      try {
+        const fs = require('fs')
+        const path = require('path')
+        const storePath = path.join(process.cwd(), 'mock_db_store.json')
+        if (fs.existsSync(storePath)) {
+          const store = JSON.parse(fs.readFileSync(storePath, 'utf-8'))
+          if (!store.mockNewsletters) store.mockNewsletters = []
+          store.mockNewsletters = [newDispatch, ...store.mockNewsletters]
+          fs.writeFileSync(storePath, JSON.stringify(store, null, 2))
+        }
+      } catch {
+        // Filesystem may be read-only on Vercel — safe to ignore
       }
 
       console.log(`[Mock Mailer] Dispatched "${subject}" to ${mockSubscribers.length} addresses.`)

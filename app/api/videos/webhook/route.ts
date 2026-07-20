@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isMockEnabled } from '@/lib/supabase/mockDb'
-import { createClient } from '@/lib/supabase/client'
-
-// Obfuscated string concatenation for server-side file operations in mock mode
-const fs = require('f' + 's')
-const path = require('p' + 'ath')
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
@@ -23,23 +19,29 @@ export async function POST(req: Request) {
       const playbackUrl = `https://iframe.videodelivery.net/${videoUid}`
 
       if (isMockEnabled()) {
-        const storePath = path.join(process.cwd(), 'mock_db_store.json')
-        if (fs.existsSync(storePath)) {
-          const store = JSON.parse(fs.readFileSync(storePath, 'utf-8'))
-          if (store.mockVideos) {
-            store.mockVideos = store.mockVideos.map((v: any) => {
-              if (v.video_url.includes(videoUid) || v.video_url === playbackUrl) {
-                return {
-                  ...v,
-                  status: 'published',
-                  published_at: new Date().toISOString()
+        try {
+          const fs = require('fs')
+          const path = require('path')
+          const storePath = path.join(process.cwd(), 'mock_db_store.json')
+          if (fs.existsSync(storePath)) {
+            const store = JSON.parse(fs.readFileSync(storePath, 'utf-8'))
+            if (store.mockVideos) {
+              store.mockVideos = store.mockVideos.map((v: any) => {
+                if (v.video_url.includes(videoUid) || v.video_url === playbackUrl) {
+                  return {
+                    ...v,
+                    status: 'published',
+                    published_at: new Date().toISOString()
+                  }
                 }
-              }
-              return v
-            })
-            fs.writeFileSync(storePath, JSON.stringify(store, null, 2))
-            console.log(`[Mock Webhook] Video ${videoUid} marked as published.`)
+                return v
+              })
+              fs.writeFileSync(storePath, JSON.stringify(store, null, 2))
+              console.log(`[Mock Webhook] Video ${videoUid} marked as published.`)
+            }
           }
+        } catch {
+          // Filesystem may be read-only on Vercel — safe to ignore
         }
       } else {
         const supabase = createClient()

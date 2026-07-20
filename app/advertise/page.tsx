@@ -3,7 +3,7 @@
 import Header from '@/components/public/Header'
 import Footer from '@/components/public/Footer'
 import { useState } from 'react'
-import { CheckCircle2, DollarSign, Layout, Smartphone, Calendar, Send } from 'lucide-react'
+import { CheckCircle2, Layout, Smartphone, Calendar, Send } from 'lucide-react'
 
 export default function AdvertisePage() {
   const [name, setName] = useState('')
@@ -30,28 +30,28 @@ export default function AdvertisePage() {
       id: 'homepage_top',
       name: 'Homepage Top Leaderboard',
       size: '970x90 px / 728x90 px',
-      price: '$450 / month',
+      price: 'Around 300 KSh / month',
       description: 'First fold premium placement above all editorial contents. Maximum visibility for brand awareness campaigns.'
     },
     {
       id: 'homepage_mid',
       name: 'Homepage Middle Banner',
       size: '970x250 px / 728x90 px',
-      price: '$300 / month',
+      price: 'Around 300 KSh / month',
       description: 'Nested between categories rows. High conversion rate as users scroll down trending and county feeds.'
     },
     {
       id: 'article_inline',
       name: 'Article Inline Banner',
       size: '728x90 px / 300x250 px',
-      price: '$350 / month',
+      price: 'Around 300 KSh / month',
       description: 'Appears inside published articles below the 3rd block. Engages readers who read details and long-form features.'
     },
     {
       id: 'sidebar',
       name: 'Sidebar Square Banner',
       size: '300x250 px / 300x300 px',
-      price: '$250 / month',
+      price: 'Around 300 KSh / month',
       description: 'Placed inside the sticky homepage and article page sidebars. Highly persistent as content is read.'
     }
   ]

@@ -4,43 +4,19 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ArrowRight, Mail, Facebook, Twitter, Youtube, CheckCircle2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { isMockEnabled } from '@/lib/supabase/mockDb'
+import { isMockEnabled, mockCategories } from '@/lib/supabase/mockDb'
 import { Category } from '@/lib/types'
 
 export default function Footer() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
-  const [siteName, setSiteName] = useState('Khaemba News')
-  const [footerBlurb, setFooterBlurb] = useState('Independent, county-first investigative reporting. Authoritative stories and in-depth documentaries outlining structural governance, economic growth, and communities in East Africa.')
   const [siteCategories, setSiteCategories] = useState<Category[]>([])
 
   useEffect(() => {
-    const fetchSiteSettings = async () => {
-      if (isMockEnabled()) {
-        return
-      }
-
-      try {
-        const supabase = createClient()
-        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'd7e9b0cf-52fb-4d1a-8c88-75796c000000'
-        const { data } = await supabase
-          .from('site_settings')
-          .select('site_name, footer_blurb')
-          .eq('tenant_id', tenantId)
-          .maybeSingle()
-
-        if (data) {
-          setSiteName(data.site_name || 'Khaemba News')
-          setFooterBlurb(data.footer_blurb || footerBlurb)
-        }
-      } catch (error) {
-        console.error('Failed to load footer settings:', error)
-      }
-    }
-
     const fetchCategories = async () => {
       if (isMockEnabled()) {
+        setSiteCategories(mockCategories)
         return
       }
 
@@ -61,7 +37,6 @@ export default function Footer() {
       }
     }
 
-    fetchSiteSettings()
     fetchCategories()
   }, [])
 
@@ -100,11 +75,11 @@ export default function Footer() {
         <div className="flex flex-col space-y-4">
           <Link href="/">
             <h2 className="font-headline font-black text-2xl tracking-tight text-white select-none">
-              {siteName}
+              Khaemba News
             </h2>
           </Link>
           <p className="text-sm leading-relaxed">
-            {footerBlurb}
+            Kenya&apos;s trusted news website. Delivering authoritative reporting, in-depth analysis, and compelling stories from across the nation and beyond.
           </p>
           <div className="flex space-x-4 pt-2">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2 bg-white/5 rounded-full hover:bg-amber hover:text-ink-navy transition-colors text-white" aria-label="Facebook">
@@ -129,23 +104,23 @@ export default function Footer() {
               </Link>
             )) : (
               <>
-                <Link href="/category/politics" className="hover:text-amber transition-colors">Politics & Parliament</Link>
-                <Link href="/category/business" className="hover:text-amber transition-colors">Business & Devolution VC</Link>
-                <Link href="/category/county" className="hover:text-amber transition-colors">County News & Devolution</Link>
-                <Link href="/category/sports" className="hover:text-amber transition-colors">Track, Field & Sports</Link>
-                <Link href="/category/opinion" className="hover:text-amber transition-colors">Opinion & Editorials</Link>
+                <Link href="/category/politics" className="hover:text-amber transition-colors">Politics</Link>
+                <Link href="/category/business" className="hover:text-amber transition-colors">Business</Link>
+                <Link href="/category/national" className="hover:text-amber transition-colors">National</Link>
+                <Link href="/category/sports" className="hover:text-amber transition-colors">Sports</Link>
+                <Link href="/category/opinion" className="hover:text-amber transition-colors">Opinion</Link>
               </>
             )}
-            <Link href="/documentaries" className="hover:text-amber transition-colors text-amber font-semibold">Documentaries Hub</Link>
+            <Link href="/documentaries" className="hover:text-amber transition-colors text-amber font-semibold">Documentaries</Link>
           </div>
         </div>
 
-        {/* Column 3: Quick Corporate Links */}
+        {/* Column 3: Quick Links */}
         <div className="flex flex-col space-y-4">
-          <h3 className="font-mono text-xs font-bold tracking-widest text-white uppercase">Corporate</h3>
+          <h3 className="font-mono text-xs font-bold tracking-widest text-white uppercase">Company</h3>
           <div className="grid grid-cols-1 gap-2 text-sm">
-            <Link href="/about" className="hover:text-amber transition-colors">About Our Newsroom</Link>
-            <Link href="/contact" className="hover:text-amber transition-colors">Contact Editorial Desk</Link>
+            <Link href="/about" className="hover:text-amber transition-colors">About Us</Link>
+            <Link href="/contact" className="hover:text-amber transition-colors">Contact</Link>
             <Link href="/advertise" className="hover:text-amber transition-colors font-semibold">Advertise With Us</Link>
             <Link href="/privacy" className="hover:text-amber transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-amber transition-colors">Terms of Service</Link>
@@ -154,9 +129,9 @@ export default function Footer() {
 
         {/* Column 4: Newsletter Box */}
         <div className="flex flex-col space-y-4">
-          <h3 className="font-mono text-xs font-bold tracking-widest text-white uppercase">Newsletter Dispatch</h3>
+          <h3 className="font-mono text-xs font-bold tracking-widest text-white uppercase">Newsletter</h3>
           <p className="text-sm">
-            Get premium analyses and county dispatches delivered weekly to your inbox.
+            Get breaking news and in-depth stories delivered straight to your inbox.
           </p>
           <form onSubmit={handleSubscribe} className="flex items-stretch bg-white/5 border border-white/10 rounded overflow-hidden">
             <div className="flex items-center px-3 text-white/40">
@@ -204,7 +179,7 @@ export default function Footer() {
           &copy; {new Date().getFullYear()} Khaemba News. All rights reserved.
         </p>
         <p className="text-white/40 mt-2 sm:mt-0">
-          Built with Next.js, Tailwind, & Supabase.
+          Kenya&apos;s trusted source for news that matters.
         </p>
       </div>
     </footer>

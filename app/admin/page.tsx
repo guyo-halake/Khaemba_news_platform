@@ -2,7 +2,7 @@ import StatCard from '@/components/admin/StatCard'
 import DashboardCharts from '@/components/admin/DashboardCharts'
 import { createClient } from '@/lib/supabase/server'
 import { isMockEnabled, mockArticles, mockAds, mockComments, mockSubscribers } from '@/lib/supabase/mockDb'
-import { Newspaper, Eye, Image as AdIcon, DollarSign, Clock, MessageSquare, Plus } from 'lucide-react'
+import { Newspaper, Eye, Image as AdIcon, Clock, MessageSquare, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 async function getDashboardMetrics(tenantId: string) {
@@ -185,7 +185,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Stat Cards Row */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard
           title="Total Articles"
           value={stats.totalArticles}
@@ -203,12 +203,6 @@ export default async function AdminDashboardPage() {
           value={`${stats.activeAds} / 4`}
           description="Occupied client spaces"
           icon={AdIcon}
-        />
-        <StatCard
-          title="Monthly Est. Revenue"
-          value={`$${stats.computedRevenue.toLocaleString()}`}
-          trend={{ value: 8.5, label: 'vs last month', isPositive: true }}
-          icon={DollarSign}
         />
       </section>
 

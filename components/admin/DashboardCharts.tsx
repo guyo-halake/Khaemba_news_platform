@@ -48,10 +48,10 @@ export default function DashboardCharts({ trafficData, adRevenueData }: ChartsPr
       <div className="bg-white dark:bg-gray-900 border border-ink-navy/10 dark:border-gray-800 rounded-lg p-5 space-y-4 shadow-sm">
         <div>
           <h3 className="font-headline font-bold text-lg text-ink-navy dark:text-white">
-            Ad Revenue & Clicks
+            Ad Click Analytics
           </h3>
           <p className="text-xs text-ink-navy/50 dark:text-gray-400 font-mono">
-            Monthly aggregate ad sales in USD vs aggregate click counters
+            Monthly aggregate click counters across campaigns
           </p>
         </div>
 
@@ -71,7 +71,6 @@ export default function DashboardCharts({ trafficData, adRevenueData }: ChartsPr
                 }}
               />
               <Legend verticalAlign="top" height={36} />
-              <Bar dataKey="revenue" name="Revenue ($)" fill="#3A7D44" radius={[4, 4, 0, 0]} />
               <Bar dataKey="clicks" name="Total Ad Clicks" fill="#8A5A9E" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
